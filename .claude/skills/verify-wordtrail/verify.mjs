@@ -12,7 +12,9 @@ import http from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 import puppeteer from "puppeteer-core";
+import { parseMeanings } from "../../../extension/meanings-text.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
@@ -97,27 +99,46 @@ async function startSession(evidenceDir) {
 		},
 		async panelText(id) {
 			const panel = await panelTarget().asPage();
-			return panel.$eval(`#${id}`, (e) => e.textContent);
+			// Inputs hold their text in value; other elements in textContent.
+			return panel.$eval(`#${id}`, (e) => e.value ?? e.textContent);
+		},
+		async panelPlaceholder(id) {
+			const panel = await panelTarget().asPage();
+			return panel.$eval(`#${id}`, (e) => e.placeholder);
+		},
+		// Replaces a field's text by typing, as the reader would.
+		async typeInPanel(id, text) {
+			const panel = await panelTarget().asPage();
+			await panel.bringToFront();
+			await panel.$eval(`#${id}`, (e) => e.select());
+			await panel.keyboard.type(text);
+			await page.bringToFront();
+		},
+		async clickInPanel(id) {
+			const panel = await panelTarget().asPage();
+			await panel.bringToFront();
+			await panel.click(`#${id}`);
+			await wait(300);
+			await page.bringToFront();
+		},
+		// Read-only look at what the panel saved, until the list screen (T5) exists.
+		async savedWords() {
+			const panel = await panelTarget().asPage();
+			return panel.evaluate(
+				async () => (await chrome.storage.local.get("words")).words ?? {},
+			);
 		},
 		// Waits for the real dictionary, which the panel gives up on after 10s.
 		async panelMeanings() {
 			const panel = await panelTarget().asPage();
 			await panel.waitForFunction(
 				() =>
-					!document
-						.getElementById("meanings")
-						.textContent.startsWith("辞書を引いています"),
+					document.getElementById("meanings").placeholder !==
+					"辞書を引いています…",
 				// The panel tab sits behind the page, where rAF-based polling never fires.
 				{ polling: 200, timeout: 12000 },
 			);
-			return panel.$$eval("#meanings h2", (parts) =>
-				parts.map((part) => ({
-					partOfSpeech: part.textContent,
-					definitions: [...part.nextElementSibling.children].map(
-						(item) => item.textContent,
-					),
-				})),
-			);
+			return parseMeanings(await panel.$eval("#meanings", (e) => e.value));
 		},
 		async screenshot(name) {
 			await page.screenshot({
@@ -197,9 +218,38 @@ const journeys = {
 		check(
 			"辞書にない語では、手での入力を案内する",
 			(await s.panelMeanings()).length === 0 &&
-				(await s.panelText("meanings")).startsWith("辞書から意味を取れません"),
+				(await s.panelPlaceholder("meanings")).startsWith(
+					"辞書から意味を取れません",
+				),
 		);
 		await s.screenshot("meanings");
+	},
+	async save(s, check) {
+		await s.openPanel();
+		await s.dblclick("#running");
+		await s.panelMeanings();
+		await s.typeInPanel("word", "run");
+		await s.typeInPanel("meanings", "verb:\n走る\n\nnoun:\n走ること");
+		await s.clickInPanel("save");
+		check("保存したと出る", (await s.panelText("status")) === "保存しました。");
+		const { run } = await s.savedWords();
+		check("書き換えた見出し語で保存される", run?.headword === "run");
+		check(
+			"書き換えた意味で保存される",
+			// chrome.storage hands objects back with their keys reordered.
+			isDeepStrictEqual(run?.meanings, [
+				{ partOfSpeech: "verb", definitions: ["走る"] },
+				{ partOfSpeech: "noun", definitions: ["走ること"] },
+			]),
+			run?.meanings,
+		);
+		check(
+			"文脈は文と URL の 1 件",
+			run?.contexts.length === 1 &&
+				run.contexts[0].sentence === "Running is good exercise." &&
+				run.contexts[0].url === s.url,
+		);
+		await s.screenshot("save");
 	},
 	async iframe(s, check) {
 		await s.openPanel();
@@ -265,7 +315,9 @@ async function run(names) {
 		const evidenceDir = path.join(root, "artifacts/verify", runId, name);
 		mkdirSync(evidenceDir, { recursive: true });
 		const checks = [];
-		const check = (label, passed) => checks.push({ label, passed });
+		// actual: what was seen, recorded so a FAIL says why.
+		const check = (label, passed, actual) =>
+			checks.push({ label, passed, actual });
 		const session = await startSession(evidenceDir);
 		try {
 			await journeys[name](session, check, evidenceDir);
@@ -280,7 +332,12 @@ async function run(names) {
 			JSON.stringify({ journey: name, checks }, null, "\t"),
 		);
 		for (const c of checks) {
-			console.log(`${c.passed ? "PASS" : "FAIL"} [${name}] ${c.label}`);
+			console.log(
+				`${c.passed ? "PASS" : "FAIL"} [${name}] ${c.label}`,
+				...(c.passed || c.actual === undefined
+					? []
+					: [JSON.stringify(c.actual)]),
+			);
 			ok &&= c.passed;
 		}
 	}

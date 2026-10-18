@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { addContext } from "../extension/notebook.js";
+import { addContext, saveEntry } from "../extension/notebook.js";
 
 const entry = {
 	headword: "run",
@@ -44,4 +44,41 @@ test("元の単語は書き換えない", () => {
 		addedAt: "2026-10-19T09:00:00Z",
 	});
 	assert.deepEqual(entry, before);
+});
+
+const context = {
+	sentence: "Running is good exercise.",
+	url: "https://example.com/d",
+	addedAt: "2026-10-20T08:00:00Z",
+};
+
+test("未登録の語は、文脈 1 件で新しく登録される", () => {
+	const words = saveEntry(
+		{},
+		{ headword: "running", meanings: entry.meanings, context },
+	);
+	assert.deepEqual(words, {
+		running: {
+			headword: "running",
+			meanings: entry.meanings,
+			contexts: [context],
+			createdAt: context.addedAt,
+		},
+	});
+});
+
+test("登録済みの語は、意味を書き換え、文脈を足し、登録日時を保つ", () => {
+	const meanings = [{ partOfSpeech: "verb", definitions: ["走る"] }];
+	const words = saveEntry(
+		{ run: entry },
+		{ headword: "Run", meanings, context },
+	);
+	assert.deepEqual(words, {
+		run: {
+			headword: "Run",
+			meanings,
+			contexts: [...entry.contexts, context],
+			createdAt: entry.createdAt,
+		},
+	});
 });

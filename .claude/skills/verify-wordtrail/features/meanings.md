@@ -24,7 +24,7 @@ Preconditions:
 - **小文字の見出し語。** `#running`（`Running`）をダブルクリックする。`verify.mjs run meanings` で、`#word` が `running` になることを確かめる。
 - **品詞ごとの意味。** `#meanings` の最初の品詞が `verb`、その 1 個目が `present participle and gerund of run` になり、どの品詞も意味が 2 個以下になる。
 - **文と URL。** `#sentence` が `Running is good exercise.`、`#url` が試験用ページの URL になる。
-- **辞書にない語。** `#qwzxvbn` をダブルクリックする。品詞の見出しが出ず、`#meanings` が `辞書から意味を取れません` で始まる。
+- **辞書にない語。** `#qwzxvbn` をダブルクリックする。`#meanings` が空になり、その placeholder が `辞書から意味を取れません` で始まる。
 - **証跡。** `meanings-page.png` と `meanings-panel.png` に、最後の状態が残る。
 
 ## Gotchas

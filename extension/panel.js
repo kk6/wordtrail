@@ -1,10 +1,14 @@
 import { lookUp } from "./dictionary.js";
+import { formatMeanings, parseMeanings } from "./meanings-text.js";
+import { saveEntry } from "./notebook.js";
 
-const [word, sentence, url, meanings] = [
+const [word, meanings, sentence, url, save, status] = [
 	"word",
+	"meanings",
 	"sentence",
 	"url",
-	"meanings",
+	"save",
+	"status",
 ].map((id) => document.getElementById(id));
 let shown;
 
@@ -12,33 +16,42 @@ async function show(selection) {
 	if (!selection) return;
 	shown = selection;
 	const headword = selection.word.toLowerCase();
-	word.textContent = headword;
+	word.value = headword;
 	sentence.textContent = selection.sentence;
 	url.textContent = selection.url;
-	meanings.textContent = "辞書を引いています…";
+	status.textContent = "";
+	save.disabled = false;
+	meanings.value = "";
+	meanings.placeholder = "辞書を引いています…";
 	const found = await lookUp(headword);
 	if (shown !== selection) return;
-	if (!found.length) {
-		meanings.textContent =
-			"辞書から意味を取れませんでした。意味は手で入力してください。";
+	meanings.placeholder = found.length
+		? ""
+		: "辞書から意味を取れませんでした。意味は手で入力してください。";
+	// Keep whatever the reader already typed while the lookup was running.
+	if (!meanings.value) meanings.value = formatMeanings(found);
+}
+
+save.addEventListener("click", async () => {
+	const headword = word.value.trim();
+	if (!headword) {
+		status.textContent = "見出し語を入力してください。";
 		return;
 	}
-	meanings.replaceChildren(
-		...found.flatMap(({ partOfSpeech, definitions }) => {
-			const part = document.createElement("h2");
-			part.textContent = partOfSpeech;
-			const list = document.createElement("ol");
-			list.append(
-				...definitions.map((definition) => {
-					const item = document.createElement("li");
-					item.textContent = definition;
-					return item;
-				}),
-			);
-			return [part, list];
+	const { words = {} } = await chrome.storage.local.get("words");
+	await chrome.storage.local.set({
+		words: saveEntry(words, {
+			headword,
+			meanings: parseMeanings(meanings.value),
+			context: {
+				sentence: shown.sentence,
+				url: shown.url,
+				addedAt: new Date().toISOString(),
+			},
 		}),
-	);
-}
+	});
+	status.textContent = "保存しました。";
+});
 
 chrome.storage.session
 	.get("selection")

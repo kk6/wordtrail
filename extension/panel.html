@@ -8,17 +8,20 @@
 				font-family: system-ui, sans-serif;
 				margin: 16px;
 			}
+			label {
+				display: block;
+				font-size: 0.8rem;
+				color: GrayText;
+				margin-top: 12px;
+			}
+			input,
+			textarea {
+				box-sizing: border-box;
+				width: 100%;
+				font: inherit;
+			}
 			#word {
 				font-size: 1.5rem;
-				margin: 0;
-			}
-			#meanings h2 {
-				font-size: 0.9rem;
-				margin: 12px 0 0;
-			}
-			#meanings ol {
-				margin: 4px 0;
-				padding-left: 1.5em;
 			}
 			#url {
 				color: GrayText;
@@ -28,10 +31,15 @@
 		</style>
 	</head>
 	<body>
-		<p id="word">単語をダブルクリックしてください</p>
-		<div id="meanings"></div>
+		<label for="word">見出し語</label>
+		<input id="word" placeholder="単語をダブルクリックしてください" />
+		<label for="meanings">意味（「verb:」のような行が品詞、その下の行が意味）</label>
+		<textarea id="meanings" rows="10"></textarea>
+		<label for="sentence">文脈</label>
 		<p id="sentence"></p>
 		<p id="url"></p>
+		<button id="save" type="button" disabled>保存</button>
+		<span id="status" role="status"></span>
 		<script type="module" src="panel.js"></script>
 	</body>
 </html>
