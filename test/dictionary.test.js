@@ -51,3 +51,18 @@ test("通信に失敗すると、意味が空になる", async () => {
 	};
 	assert.deepEqual(await lookUp("running", offline), []);
 });
+
+test("応答が時間内に来なければ、意味が空になる", {
+	timeout: 1000,
+}, async () => {
+	const hanging = (_, options) =>
+		new Promise((_, reject) => {
+			// A real fetch keeps the event loop alive; AbortSignal.timeout alone doesn't.
+			const pending = setTimeout(() => {}, 2000);
+			options?.signal?.addEventListener("abort", () => {
+				clearTimeout(pending);
+				reject(options.signal.reason);
+			});
+		});
+	assert.deepEqual(await lookUp("running", hanging, 10), []);
+});
