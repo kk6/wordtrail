@@ -41,6 +41,8 @@ const [
 	"list-status",
 ].map((id) => document.getElementById(id));
 let shown;
+// The key of the saved word on screen, or null while showing a new one.
+let showingKey = null;
 
 async function show(selection) {
 	if (!selection) return;
@@ -53,14 +55,12 @@ async function show(selection) {
 	const { words: notebook = {} } = await chrome.storage.local.get("words");
 	if (shown !== selection) return;
 	const saved = notebook[headword];
-	showHistory(saved?.contexts ?? []);
 	if (saved) {
-		word.value = saved.headword;
-		meanings.value = formatMeanings(saved.meanings);
-		meanings.placeholder = "";
-		status.textContent = "登録済みの単語です。";
+		showSaved(saved, "登録済みの単語です。");
 		return;
 	}
+	showingKey = null;
+	showHistory([]);
 	word.value = headword;
 	status.textContent = "";
 	meanings.value = "";
@@ -73,6 +73,29 @@ async function show(selection) {
 	// Keep whatever the reader already typed while the lookup was running.
 	if (!meanings.value) meanings.value = formatMeanings(found);
 }
+
+function showSaved(saved, note) {
+	showingKey = saved.headword.toLowerCase();
+	word.value = saved.headword;
+	meanings.value = formatMeanings(saved.meanings);
+	meanings.placeholder = "";
+	showHistory(saved.contexts);
+	status.textContent = note;
+}
+
+// Saving under another saved word's headword would overwrite its meanings, so
+// show that word instead and let the save add this sentence to it.
+word.addEventListener("change", async () => {
+	const key = word.value.trim().toLowerCase();
+	if (!key || key === showingKey) return;
+	const { words: notebook = {} } = await chrome.storage.local.get("words");
+	const saved = notebook[key];
+	if (saved)
+		showSaved(
+			saved,
+			`登録済みの「${saved.headword}」を表示しています。保存すると、今の文を「${saved.headword}」の文脈に足します。`,
+		);
+});
 
 function showHistory(saved) {
 	history.hidden = !saved.length;

@@ -175,6 +175,9 @@ async function startSession(evidenceDir) {
 			await panel.bringToFront();
 			await panel.$eval(`#${id}`, (e) => e.select());
 			await panel.keyboard.type(text);
+			// Leaving the field fires change, as when the reader moves on.
+			await panel.keyboard.press("Tab");
+			await wait(300);
 			await page.bringToFront();
 		},
 		// dialog: true or false accepts or dismisses the confirm() it opens.
@@ -366,6 +369,41 @@ const journeys = {
 			await s.panelContexts(),
 		);
 		await s.screenshot("registered");
+	},
+	async rename(s, check) {
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
+		await s.clickInPanel("#save");
+		await s.dblclick("#deprecated");
+		await s.panelMeanings();
+		await s.typeInPanel("word", "ubiquitous");
+		check(
+			"見出し語を登録済みの語に変えると、その語の保存内容に切り替わる",
+			(await s.panelText("meanings")) === "adjective:\nどこにでもある" &&
+				(await s.panelContexts()) === 1,
+			[await s.panelText("meanings"), await s.panelContexts()],
+		);
+		check(
+			"切り替わったことが出る",
+			(await s.panelText("status")).includes("登録済みの「ubiquitous」"),
+			await s.panelText("status"),
+		);
+		await s.clickInPanel("#save");
+		const { ubiquitous, deprecated } = await s.savedWords();
+		check(
+			"保存しても意味は上書きされず、今の文が文脈に足される",
+			isDeepStrictEqual(ubiquitous?.meanings, [
+				{ partOfSpeech: "adjective", definitions: ["どこにでもある"] },
+			]) &&
+				ubiquitous.contexts.length === 2 &&
+				ubiquitous.contexts[1].sentence ===
+					"The U.S. team has deprecated the old API.",
+			ubiquitous,
+		);
+		check("元の語は登録されない", deprecated === undefined);
+		await s.screenshot("rename");
 	},
 	async persist(s, check) {
 		await s.openPanel();
