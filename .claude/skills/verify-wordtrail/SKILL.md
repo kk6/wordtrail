@@ -41,11 +41,11 @@ description: Wordtrail（英語のページで単語をダブルクリックす�
 .claude/skills/verify-wordtrail/verify.mjs run all
 ```
 
-ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`stable-id` の 3 つ。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
+ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`meanings`、`stable-id` の 4 つ。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
 
 - 操作は `page.mouse.click(..., { count: 2 })` で行う。これは本物のダブルクリックで、ユーザー操作として扱われる。`page.evaluate` で `dblclick` イベントを作るのは使わない。puppeteer は `evaluate` にユーザー操作の印を付けるので、本物の操作でなくても通ってしまう。
 - ダブルクリックする場所は、試験用ページの要素の `id`（`#ubiquitous`、`#deprecated` など）で指定する。座標は書かない。
-- パネルの中身は、パネルのページの `#word`、`#sentence`、`#url` の `textContent` で読む。
+- パネルの中身は、パネルのページの `#word`、`#sentence`、`#url` の `textContent` で読む。意味は `#meanings` の `h2`（品詞）と、その次の `ol` の `li` で読む。
 - 新しい機能を足したら、`verify.mjs` の `journeys` にジャーニーを、`features/` に同じ名前のファイルを追加する。必要なら試験用ページに要素を足す。
 
 ## 証跡

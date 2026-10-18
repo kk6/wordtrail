@@ -91,6 +91,26 @@ async function startSession(evidenceDir) {
 			const panel = await panelTarget().asPage();
 			return panel.$eval(`#${id}`, (e) => e.textContent);
 		},
+		// Waits for the real dictionary, which the panel gives up on after 10s.
+		async panelMeanings() {
+			const panel = await panelTarget().asPage();
+			await panel.waitForFunction(
+				() =>
+					!document
+						.getElementById("meanings")
+						.textContent.startsWith("辞書を引いています"),
+				// The panel tab sits behind the page, where rAF-based polling never fires.
+				{ polling: 200, timeout: 12000 },
+			);
+			return panel.$$eval("#meanings h2", (parts) =>
+				parts.map((part) => ({
+					partOfSpeech: part.textContent,
+					definitions: [...part.nextElementSibling.children].map(
+						(item) => item.textContent,
+					),
+				})),
+			);
+		},
 		async screenshot(name) {
 			await page.screenshot({
 				path: path.join(evidenceDir, `${name}-page.png`),
@@ -146,6 +166,27 @@ const journeys = {
 		);
 		await s.screenshot("sentence");
 	},
+	async meanings(s, check) {
+		await s.openPanel();
+		await s.dblclick("#running");
+		check("見出し語が小文字で出る", (await s.panelText("word")) === "running");
+		const meanings = await s.panelMeanings();
+		check(
+			"辞書の意味が品詞ごとに出る",
+			meanings[0]?.partOfSpeech === "verb" &&
+				meanings[0].definitions[0] === "To move swiftly.",
+		);
+		check(
+			"品詞ごとの意味は 2 個まで",
+			meanings.length > 0 && meanings.every((m) => m.definitions.length <= 2),
+		);
+		check(
+			"文と URL も出る",
+			(await s.panelText("sentence")) === "Running is good exercise." &&
+				(await s.panelText("url")) === s.url,
+		);
+		await s.screenshot("meanings");
+	},
 	async "stable-id"(s, check, evidenceDir) {
 		check(
 			"ID は manifest の key から決まる値",
@@ -198,6 +239,7 @@ async function run(names) {
 			await journeys[name](session, check, evidenceDir);
 		} catch (error) {
 			checks.push({ label: `例外: ${error.message}`, passed: false });
+			await session.screenshot(`${name}-error`).catch(() => {});
 		} finally {
 			await session.close();
 		}
