@@ -1,1 +1,1 @@
-次: TODO.md の T3（意味が自動で入る）。辞書 API の実際の応答（running と 404）をテスト用のファイルに保存するところから始める。終わったら verify-wordtrail にジャーニーと機能のファイルを足す
+次: ダブルクリックでパネルを自動で開くのをやめる（2026-10-18 に決定）。パネルはアイコンか Chrome のサイドパネルのメニューで開き、閉じているときのダブルクリックは最後の単語を覚えておくだけにする。直すのは extension/background.js の sidePanel.open の行、ADR-0001 の受け入れ条件 1、README、TODO.md の T1 のメモ、verify-wordtrail の select-word ジャーニー（パネルを開く代わりの手段を探す）。終わったら T3 へ
