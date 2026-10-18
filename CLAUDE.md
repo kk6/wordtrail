@@ -20,6 +20,7 @@
 
 - テスト: `npm test`
 - lint とフォーマットの確認: `npm run lint`（自動修正は `npx biome check --write .`）
+- Chrome での検証: `.claude/skills/verify-wordtrail/verify.mjs run all`。拡張の挙動を変えたら、タスクを完了にする前に実行する。手順と機能マップは `.claude/skills/verify-wordtrail/` にある。画面ありの Chrome が要るので CI では実行しない
 
 ## 進め方
 
