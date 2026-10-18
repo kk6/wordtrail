@@ -45,6 +45,8 @@
 	メモ: 2026-10-18 に、一時プロファイルの Chrome で、`Running` から見出し語 `running` と Wiktionary の意味が出ること、辞書にない語で手での入力を案内することを確かめた（verify の `meanings`）。
 - [ ] 種類の違う英語のページ 3 つ（MDN、英語のニュース記事、GitHub の README）で上の 1 行を確かめる（完成条件 1）
 
+	メモ: 2026-10-18 に普段の Chrome で、MDN（`completion`）、GitHub の README（`scripted`）、x.com の投稿（`suppose`）で見出し語、意味、文、URL が出た。ニュース記事はまだ。claude.ai の Artifact では、本文が iframe の中にあるためダブルクリックが届かなかったので、コンテンツスクリプトを iframe にも入れ、URL はタブのものを使うようにした（verify の `iframe`）。
+
 ## T4. 保存と、登録済みの判定（1〜2 時間）
 
 - [ ] 文脈を追加する処理に、テストがある。新しい文は追加され、同じ文は追加されない

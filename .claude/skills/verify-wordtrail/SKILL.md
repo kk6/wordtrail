@@ -13,7 +13,7 @@ description: Wordtrail（英語のページで単語をダブルクリックす�
 
 - 準備は一度だけ行う。リポジトリのルートで `npm install` を実行する。`puppeteer-core` が入るが、Chrome 本体はダウンロードしない。インストール済みの Chrome（既定は `/Applications/Google Chrome.app`、別の場所なら `CHROME_PATH` で指定）を使う。
 - 1 回の実行では、次の 3 つを新しく起動する。どれも実行が終わると片付ける。
-	- `127.0.0.1` の空きポートで `fixtures/article.html` を返す HTTP サーバー
+	- `127.0.0.1` の空きポートで `fixtures/article.html` を返す HTTP サーバー（`/frame` だけは、ページに埋め込む `fixtures/frame.html` を返す）
 	- `os.tmpdir()` の下に作る空のプロファイル `wordtrail-verify-*`
 	- `extension/` を読み込んだ、画面ありの Chrome。サイドパネルは画面なしでは開かない
 - 拡張の service worker が起動し、試験用ページを読み込んだ時点を「使える状態」とする。
@@ -41,7 +41,7 @@ description: Wordtrail（英語のページで単語をダブルクリックす�
 .claude/skills/verify-wordtrail/verify.mjs run all
 ```
 
-ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`meanings`、`stable-id` の 4 つ。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
+ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`meanings`、`iframe`、`stable-id` の 5 つ。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
 
 - 操作は `page.mouse.click(..., { count: 2 })` で行う。これは本物のダブルクリックで、ユーザー操作として扱われる。`page.evaluate` で `dblclick` イベントを作るのは使わない。puppeteer は `evaluate` にユーザー操作の印を付けるので、本物の操作でなくても通ってしまう。
 - ダブルクリックする場所は、試験用ページの要素の `id`（`#ubiquitous`、`#deprecated` など）で指定する。座標は書かない。

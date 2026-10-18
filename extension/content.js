@@ -22,6 +22,5 @@ document.addEventListener("dblclick", () => {
 		text: String(selection),
 		block: block.textContent,
 		offset: before.toString().length,
-		url: location.href,
 	});
 });

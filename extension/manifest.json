@@ -8,5 +8,7 @@
 	"action": { "default_title": "Wordtrail を開く" },
 	"background": { "service_worker": "background.js", "type": "module" },
 	"side_panel": { "default_path": "panel.html" },
-	"content_scripts": [{ "matches": ["<all_urls>"], "js": ["content.js"] }]
+	"content_scripts": [
+		{ "matches": ["<all_urls>"], "js": ["content.js"], "all_frames": true }
+	]
 }

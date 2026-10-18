@@ -20,7 +20,10 @@ const extensionDir = path.join(root, "extension");
 const chromePath =
 	process.env.CHROME_PATH ??
 	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const fixture = readFileSync(path.join(here, "fixtures/article.html"));
+const fixtures = {
+	"/": readFileSync(path.join(here, "fixtures/article.html")),
+	"/frame": readFileSync(path.join(here, "fixtures/frame.html")),
+};
 
 function expectedExtensionId() {
 	const manifest = JSON.parse(
@@ -39,9 +42,9 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function startSession(evidenceDir) {
 	const server = http
-		.createServer((_, res) => {
+		.createServer((req, res) => {
 			res.setHeader("content-type", "text/html; charset=utf-8");
-			res.end(fixture);
+			res.end(fixtures[req.url] ?? fixtures["/"]);
 		})
 		.listen(0, "127.0.0.1");
 	await new Promise((resolve) => server.once("listening", resolve));
@@ -68,8 +71,13 @@ async function startSession(evidenceDir) {
 		url,
 		extensionId: new URL(worker.url()).host,
 		page,
-		async dblclick(selector) {
-			const box = await (await page.$(selector)).boundingBox();
+		// frame: a path such as "/frame" to click inside that iframe.
+		async dblclick(selector, frame) {
+			const scope = frame
+				? page.frames().find((f) => new URL(f.url()).pathname === frame)
+				: page;
+			// boundingBox() is relative to the main viewport, even inside a frame.
+			const box = await (await scope.$(selector)).boundingBox();
 			await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, {
 				count: 2,
 			});
@@ -192,6 +200,24 @@ const journeys = {
 				(await s.panelText("meanings")).startsWith("辞書から意味を取れません"),
 		);
 		await s.screenshot("meanings");
+	},
+	async iframe(s, check) {
+		await s.openPanel();
+		await s.dblclick("#framed", "/frame");
+		check(
+			"iframe の中の語がパネルに出る",
+			(await s.panelText("word")) === "serendipity",
+		);
+		check(
+			"文は iframe の中から取る",
+			(await s.panelText("sentence")) ===
+				"Inside the frame, serendipity happens.",
+		);
+		check(
+			"URL は iframe ではなくタブのページのもの",
+			(await s.panelText("url")) === s.url,
+		);
+		await s.screenshot("iframe");
 	},
 	async "stable-id"(s, check, evidenceDir) {
 		check(

@@ -11,7 +11,8 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 		selection: {
 			word,
 			sentence: extractSentence(message.block, message.offset),
-			url: message.url,
+			// The tab's URL, since the word may be inside an iframe.
+			url: sender.tab.url,
 			at: Date.now(),
 		},
 	});
