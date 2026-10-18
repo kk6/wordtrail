@@ -140,6 +140,7 @@ function entryItem(entry) {
 	text.className = "meanings";
 	text.textContent = formatMeanings(entry.meanings);
 	const seen = document.createElement("ol");
+	seen.className = "entry-contexts";
 	seen.append(...entry.contexts.map(contextItem));
 	const remove = document.createElement("button");
 	remove.type = "button";

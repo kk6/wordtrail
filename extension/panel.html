@@ -4,74 +4,224 @@
 		<meta charset="utf-8" />
 		<title>Wordtrail</title>
 		<style>
+			:root {
+				color-scheme: light dark;
+				--bg: #f7f6f2;
+				--surface: #ffffff;
+				--text: #2c2c2a;
+				--muted: #6b6a65;
+				--border: #dddbd3;
+				--accent: #1d9e75;
+				--accent-strong: #0f6e56;
+				--tag-bg: #e1f5ee;
+				--tag-text: #085041;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #1f1f1e;
+					--surface: #2a2a28;
+					--text: #ecebe6;
+					--muted: #a5a39b;
+					--border: #44443f;
+					--accent: #5dcaa5;
+					--accent-strong: #9fe1cb;
+					--tag-bg: #085041;
+					--tag-text: #9fe1cb;
+				}
+			}
 			body {
+				background: var(--bg);
+				color: var(--text);
 				font-family: system-ui, sans-serif;
-				margin: 16px;
+				font-size: 14px;
+				line-height: 1.6;
+				margin: 0;
+				padding: 12px 16px 24px;
 			}
-			label,
+			nav {
+				display: flex;
+				justify-content: flex-end;
+			}
+			button {
+				font: inherit;
+				font-size: 13px;
+				color: var(--text);
+				background: transparent;
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 4px 12px;
+				cursor: pointer;
+			}
+			button:hover {
+				border-color: var(--muted);
+			}
+			#save {
+				background: var(--accent);
+				border-color: var(--accent);
+				color: #ffffff;
+				padding: 6px 20px;
+			}
+			#save:disabled {
+				opacity: 0.5;
+				cursor: default;
+			}
+			.section {
+				margin-top: 16px;
+			}
+			.tag,
 			h2 {
-				display: block;
-				font-weight: normal;
-				font-size: 0.8rem;
-				color: GrayText;
-				margin-top: 12px;
+				display: inline-block;
+				font-size: 11px;
+				font-weight: 500;
+				background: var(--tag-bg);
+				color: var(--tag-text);
+				padding: 1px 8px;
+				border-radius: 6px;
+				margin: 0 0 6px;
 			}
-			input,
+			.hint {
+				font-size: 11px;
+				color: var(--muted);
+				margin-left: 6px;
+			}
+			.visually-hidden {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				overflow: hidden;
+				clip-path: inset(50%);
+			}
+			#word {
+				box-sizing: border-box;
+				width: 100%;
+				font: inherit;
+				font-size: 1.6rem;
+				font-weight: 500;
+				color: var(--text);
+				background: transparent;
+				border: none;
+				border-bottom: 1px solid transparent;
+				padding: 4px 0;
+			}
+			#word:focus {
+				outline: none;
+				border-bottom-color: var(--accent);
+			}
 			textarea {
 				box-sizing: border-box;
 				width: 100%;
 				font: inherit;
+				color: var(--text);
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 8px;
+				resize: vertical;
 			}
-			#word {
-				font-size: 1.5rem;
+			textarea:focus {
+				outline: none;
+				border-color: var(--accent);
 			}
-			nav {
-				text-align: right;
+			.quote,
+			.entry-contexts li {
+				border-left: 3px solid var(--accent);
+				padding-left: 10px;
+				margin: 0 0 10px;
 			}
-			#words details {
-				margin: 8px 0;
+			#sentence {
+				margin: 0;
+			}
+			#url,
+			.entry-contexts small {
+				display: block;
+				color: var(--muted);
+				font-size: 11px;
+				overflow-wrap: anywhere;
+			}
+			.entry-contexts {
+				list-style: none;
+				padding: 0;
+				margin: 0;
+			}
+			.actions {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				margin-top: 20px;
+			}
+			#status,
+			#list-status {
+				font-size: 12px;
+				color: var(--muted);
+			}
+			#words {
+				list-style: none;
+				padding: 0;
+				margin: 0;
+			}
+			#words > li {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				padding: 8px 12px;
+				margin-bottom: 8px;
 			}
 			#words summary {
 				cursor: pointer;
-				font-size: 1.1rem;
+				font-size: 1.05rem;
+				font-weight: 500;
+			}
+			#words details[open] summary {
+				color: var(--accent-strong);
+				margin-bottom: 6px;
 			}
 			.meanings {
 				white-space: pre-line;
+				margin: 0 0 8px;
 			}
-			#url {
-				color: GrayText;
-				font-size: 0.8rem;
-				overflow-wrap: anywhere;
+			#empty {
+				color: var(--muted);
 			}
 		</style>
 	</head>
 	<body>
 		<nav><button id="toggle-list" type="button">一覧</button></nav>
 		<main id="editor">
-		<label for="word">見出し語</label>
-		<input id="word" placeholder="単語をダブルクリックしてください" />
-		<label for="meanings">意味（「verb:」のような行が品詞、その下の行が意味）</label>
-		<textarea id="meanings" rows="10"></textarea>
-		<label for="sentence">文脈</label>
-		<p id="sentence"></p>
-		<p id="url"></p>
-		<section id="history" hidden>
-			<h2>これまでの文脈</h2>
-			<ol id="contexts"></ol>
-		</section>
-		<button id="save" type="button" disabled>保存</button>
-		<span id="status" role="status"></span>
+			<label for="word" class="visually-hidden">見出し語</label>
+			<input id="word" placeholder="単語をダブルクリックしてください" />
+			<div class="section">
+				<label for="meanings" class="tag">意味</label>
+				<span class="hint">「verb:」のような行が品詞、その下の行が意味</span>
+				<textarea id="meanings" rows="8"></textarea>
+			</div>
+			<div class="section">
+				<span class="tag">文脈</span>
+				<div class="quote">
+					<p id="sentence"></p>
+					<span id="url"></span>
+				</div>
+			</div>
+			<section id="history" class="section" hidden>
+				<h2>これまでの文脈</h2>
+				<ol id="contexts" class="entry-contexts"></ol>
+			</section>
+			<div class="actions">
+				<button id="save" type="button" disabled>保存</button>
+				<span id="status" role="status"></span>
+			</div>
 		</main>
 		<section id="list" hidden>
-			<p>
+			<div class="actions">
 				<button id="export" type="button">書き出し</button>
 				<button id="import" type="button">読み込み</button>
 				<input id="import-file" type="file" accept=".json,application/json" hidden />
 				<span id="list-status" role="status"></span>
-			</p>
-			<h2>登録した単語（新しい順）</h2>
-			<p id="empty">まだ単語がありません。</p>
-			<ol id="words"></ol>
+			</div>
+			<div class="section">
+				<h2>登録した単語（新しい順）</h2>
+				<p id="empty">まだ単語がありません。</p>
+				<ol id="words"></ol>
+			</div>
 		</section>
 		<script type="module" src="panel.js"></script>
 	</body>
