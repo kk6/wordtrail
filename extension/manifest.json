@@ -1,0 +1,12 @@
+{
+	"manifest_version": 3,
+	"name": "Wordtrail",
+	"version": "0.0.1",
+	"description": "英語のページを読みながら単語帳を育てる",
+	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwXXGyafZ87Z3PmhxzXB9WfdJ8wPMobiaZihzgZbRG95WpePlipy954RFFmCzHTCXmEsWgAwXq1ehu43SxEweh2DBm9YQFISDW+ncXVQHTJPlJ41E/ZsCX0OwkVppTnX4+Veu8ZD7h26Qps1YV5PfNXSP23KwewvRMeKkgynB+GU/qYxW1/hWdd5scIwCpxqihreCAJdVt4akTI8vah7PUFqFrIK7gbqx6HY+mxTHXEBtAs55fGATMSVigCOJlr8ebRUuK1dI7zLWLo/C9pjFtWwxaWG3vVmsyJWlVIQGPYUQ60eii5ei8jzG1LisMD8Cr7aBTXNr63qaSWl9vBoGwQIDAQAB",
+	"permissions": ["sidePanel", "storage"],
+	"action": { "default_title": "Wordtrail を開く" },
+	"background": { "service_worker": "background.js", "type": "module" },
+	"side_panel": { "default_path": "panel.html" },
+	"content_scripts": [{ "matches": ["<all_urls>"], "js": ["content.js"] }]
+}
