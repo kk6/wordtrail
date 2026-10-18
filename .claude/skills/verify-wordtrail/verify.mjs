@@ -53,27 +53,50 @@ async function startSession(evidenceDir) {
 	await new Promise((resolve) => server.once("listening", resolve));
 	const url = `http://127.0.0.1:${server.address().port}/`;
 	const profile = mkdtempSync(path.join(tmpdir(), "wordtrail-verify-"));
-	const browser = await puppeteer.launch({
-		executablePath: chromePath,
-		headless: false,
-		pipe: true,
-		defaultViewport: null,
-		enableExtensions: [extensionDir],
-		userDataDir: profile,
-	});
+	let browser;
+	let page;
+	// Same profile every time, so a relaunch is a Chrome restart for the notebook.
+	async function launch() {
+		browser = await puppeteer.launch({
+			executablePath: chromePath,
+			headless: false,
+			pipe: true,
+			defaultViewport: null,
+			enableExtensions: [extensionDir],
+			userDataDir: profile,
+		});
+		page = await browser.newPage();
+		await page.goto(url);
+	}
+	await launch();
+	// Only a fresh install starts the worker right away; after a reload or a
+	// restart it waits for an event, so take the ID once here.
 	const worker = await browser.waitForTarget(
 		(t) => t.type() === "service_worker",
 	);
-	const page = await browser.newPage();
-	await page.goto(url);
+	const extensionId = new URL(worker.url()).host;
 
 	const panelTarget = () =>
 		browser.targets().find((t) => t.url().endsWith("/panel.html"));
 
 	return {
 		url,
-		extensionId: new URL(worker.url()).host,
-		page,
+		extensionId,
+		async restartChrome() {
+			await browser.close();
+			await launch();
+		},
+		// Stands in for the reload button on chrome://extensions, which lives in
+		// shadow DOM: loading the same folder again reloads it from disk.
+		// chrome.runtime.reload() leaves a CDP-loaded extension stuck unloaded.
+		// Reloading orphans the page's content script, so the reader reloads
+		// the page as after a real reload.
+		async reloadExtension() {
+			const id = await browser.installExtension(extensionDir);
+			if (id !== extensionId) throw new Error(`ID が変わった: ${id}`);
+			await wait(500);
+			await page.reload();
+		},
 		// frame: a path such as "/frame" to click inside that iframe.
 		async dblclick(selector, frame) {
 			const scope = frame
@@ -100,9 +123,7 @@ async function startSession(evidenceDir) {
 		// panel page is opened in a tab instead.
 		async openPanel() {
 			const panel = await browser.newPage();
-			await panel.goto(
-				`chrome-extension://${new URL(worker.url()).host}/panel.html`,
-			);
+			await panel.goto(`chrome-extension://${extensionId}/panel.html`);
 			await page.bringToFront();
 			await wait(300);
 		},
@@ -291,6 +312,30 @@ const journeys = {
 			await s.panelContexts(),
 		);
 		await s.screenshot("registered");
+	},
+	async persist(s, check) {
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
+		await s.clickInPanel("save");
+		const stillThere = async (label) => {
+			await s.openPanel();
+			await s.dblclick("#ubiquitous");
+			check(
+				`${label}も、登録済みと出て、保存した意味が出る`,
+				(await s.panelText("status")) === "登録済みの単語です。" &&
+					(await s.panelText("meanings")) === "adjective:\nどこにでもある",
+				[await s.panelText("status"), await s.panelText("meanings")],
+			);
+		};
+		await s.reloadExtension();
+		// A real reload closes the extension's pages; this guards against a no-op.
+		check("再読み込みで、開いていたパネルが閉じる", !s.panelOpen());
+		await stillThere("拡張を再読み込みした後");
+		await s.restartChrome();
+		await stillThere("Chrome を再起動した後");
+		await s.screenshot("persist");
 	},
 	async iframe(s, check) {
 		await s.openPanel();
