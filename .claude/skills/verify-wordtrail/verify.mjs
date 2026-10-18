@@ -174,7 +174,7 @@ const journeys = {
 		check(
 			"辞書の意味が品詞ごとに出る",
 			meanings[0]?.partOfSpeech === "verb" &&
-				meanings[0].definitions[0] === "To move swiftly.",
+				meanings[0].definitions[0] === "present participle and gerund of run",
 		);
 		check(
 			"品詞ごとの意味は 2 個まで",
@@ -184,6 +184,12 @@ const journeys = {
 			"文と URL も出る",
 			(await s.panelText("sentence")) === "Running is good exercise." &&
 				(await s.panelText("url")) === s.url,
+		);
+		await s.dblclick("#qwzxvbn");
+		check(
+			"辞書にない語では、手での入力を案内する",
+			(await s.panelMeanings()).length === 0 &&
+				(await s.panelText("meanings")).startsWith("辞書から意味を取れません"),
 		);
 		await s.screenshot("meanings");
 	},

@@ -1,0 +1,658 @@
+{
+	"en": [
+		{
+			"partOfSpeech": "Noun",
+			"language": "English",
+			"definitions": [
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt96\" typeof=\"mw:Transclusion\"></span> <a rel=\"mw:WikiLink\" href=\"/wiki/employment\" title=\"employment\">Employment</a>.\n<ol><li><a rel=\"mw:WikiLink\" href=\"/wiki/labour\" title=\"labour\">Labour</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/occupation\" title=\"occupation\">occupation</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/job\" title=\"job\">job</a>.",
+					"parsedExamples": [
+						{ "example": "My <b>work</b> involves a lot of travel." },
+						{
+							"example": "He hasn’t come home yet<span typeof=\"mw:Entity\">;</span> he’s still at <b>work</b>."
+						},
+						{
+							"example": "I want to go to the reunion concert, but I'm not sure if my <b>work</b> will give me the time off."
+						}
+					],
+					"examples": [
+						"My <b>work</b> involves a lot of travel.",
+						"He hasn’t come home yet<span typeof=\"mw:Entity\">;</span> he’s still at <b>work</b>.",
+						"I want to go to the reunion concert, but I'm not sure if my <b>work</b> will give me the time off."
+					]
+				},
+				{
+					"definition": "<a rel=\"mw:WikiLink\" href=\"/wiki/labour\" title=\"labour\">Labour</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/occupation\" title=\"occupation\">occupation</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/job\" title=\"job\">job</a>.",
+					"parsedExamples": [
+						{ "example": "My <b>work</b> involves a lot of travel." }
+					],
+					"examples": ["My <b>work</b> involves a lot of travel."]
+				},
+				{
+					"definition": "The <a rel=\"mw:WikiLink\" href=\"/wiki/place\" title=\"place\">place</a> where one is employed.",
+					"parsedExamples": [
+						{
+							"example": "He hasn’t come home yet<span typeof=\"mw:Entity\">;</span> he’s still at <b>work</b>."
+						}
+					],
+					"examples": [
+						"He hasn’t come home yet<span typeof=\"mw:Entity\">;</span> he’s still at <b>work</b>."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt103\" typeof=\"mw:Transclusion\"></span> One's <a rel=\"mw:WikiLink\" href=\"/wiki/employer\" title=\"employer\">employer</a>.",
+					"parsedExamples": [
+						{
+							"example": "I want to go to the reunion concert, but I'm not sure if my <b>work</b> will give me the time off."
+						}
+					],
+					"examples": [
+						"I want to go to the reunion concert, but I'm not sure if my <b>work</b> will give me the time off."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt105\" typeof=\"mw:Transclusion\"></span> A <a rel=\"mw:WikiLink\" href=\"/wiki/factory\" title=\"factory\">factory</a>; a <a rel=\"mw:WikiLink\" href=\"/wiki/works\" title=\"works\">works</a>."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt107\" typeof=\"mw:Transclusion\"></span> <a rel=\"mw:WikiLink\" href=\"/wiki/effort\" title=\"effort\">Effort</a>.\n<ol><li><a rel=\"mw:WikiLink\" href=\"/wiki/effort\" title=\"effort\">Effort</a> expended on a particular task.",
+					"parsedExamples": [
+						{
+							"example": "Holding a brick over your head is hard <b>work</b>. It takes a lot of <b>work</b> to write a dictionary."
+						},
+						{ "example": "We know what we must do. Let's go to <b>work</b>." },
+						{
+							"example": "We don't have much time. Let's get to <b>work</b> piling up those sandbags."
+						},
+						{
+							"example": "There's lots of <b>work</b> waiting for me at the office."
+						},
+						{ "example": "has had a lot of <b>work</b> done" },
+						{ "example": "putting in <b>work</b>" },
+						{
+							"example": "<b>Work</b> is done against friction to drag a bag along the ground."
+						}
+					],
+					"examples": [
+						"Holding a brick over your head is hard <b>work</b>. It takes a lot of <b>work</b> to write a dictionary.",
+						"We know what we must do. Let's go to <b>work</b>.",
+						"We don't have much time. Let's get to <b>work</b> piling up those sandbags.",
+						"There's lots of <b>work</b> waiting for me at the office.",
+						"has had a lot of <b>work</b> done",
+						"putting in <b>work</b>",
+						"<b>Work</b> is done against friction to drag a bag along the ground."
+					]
+				},
+				{
+					"definition": "<a rel=\"mw:WikiLink\" href=\"/wiki/effort\" title=\"effort\">Effort</a> expended on a particular task.",
+					"parsedExamples": [
+						{
+							"example": "Holding a brick over your head is hard <b>work</b>. It takes a lot of <b>work</b> to write a dictionary."
+						}
+					],
+					"examples": [
+						"Holding a brick over your head is hard <b>work</b>. It takes a lot of <b>work</b> to write a dictionary."
+					]
+				},
+				{
+					"definition": "Sustained <a rel=\"mw:WikiLink\" href=\"/wiki/effort\" title=\"effort\">effort</a> to overcome <a rel=\"mw:WikiLink\" href=\"/wiki/obstacle\" title=\"obstacle\">obstacles</a> and achieve a <a rel=\"mw:WikiLink\" href=\"/wiki/result\" title=\"result\">result</a>.",
+					"parsedExamples": [
+						{ "example": "We know what we must do. Let's go to <b>work</b>." },
+						{
+							"example": "We don't have much time. Let's get to <b>work</b> piling up those sandbags."
+						}
+					],
+					"examples": [
+						"We know what we must do. Let's go to <b>work</b>.",
+						"We don't have much time. Let's get to <b>work</b> piling up those sandbags."
+					]
+				},
+				{
+					"definition": "Something on which effort is expended.",
+					"parsedExamples": [
+						{
+							"example": "There's lots of <b>work</b> waiting for me at the office."
+						},
+						{ "example": "has had a lot of <b>work</b> done" },
+						{ "example": "putting in <b>work</b>" }
+					],
+					"examples": [
+						"There's lots of <b>work</b> waiting for me at the office.",
+						"has had a lot of <b>work</b> done",
+						"putting in <b>work</b>"
+					]
+				},
+				{ "definition": "" },
+				{
+					"definition": "<span class=\"usage-label-sense\"></span> <span class=\"Latn\" lang=\"en\"><a rel=\"mw:WikiLink\" href=\"/wiki/cosmetic_surgery#English\" title=\"cosmetic surgery\">Cosmetic surgery</a></span>.",
+					"parsedExamples": [
+						{ "example": "has had a lot of <b>work</b> done" }
+					],
+					"examples": ["has had a lot of <b>work</b> done"]
+				},
+				{
+					"definition": "<!--{{lb|en|synecdoche}}--><span class=\"usage-label-sense\" about=\"#mwt120\" typeof=\"mw:Transclusion\"></span> Prison gang violence.",
+					"parsedExamples": [{ "example": "putting in <b>work</b>" }],
+					"examples": ["putting in <b>work</b>"]
+				},
+				{ "definition": "" },
+				{
+					"definition": "<span class=\"usage-label-sense\"></span> A measure of <a rel=\"mw:WikiLink\" href=\"/wiki/energy\" title=\"energy\">energy</a> expended in moving an object; most commonly, <a rel=\"mw:WikiLink\" href=\"/wiki/force\" title=\"force\">force</a> times <a rel=\"mw:WikiLink\" href=\"/wiki/distance\" title=\"distance\">distance</a>. No work is done if the object does not <a rel=\"mw:WikiLink\" href=\"/wiki/move\" title=\"move\">move</a>.",
+					"parsedExamples": [
+						{
+							"example": "<b>Work</b> is done against friction to drag a bag along the ground."
+						}
+					],
+					"examples": [
+						"<b>Work</b> is done against friction to drag a bag along the ground."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt126\" typeof=\"mw:Transclusion\"></span> A measure of energy that is <a rel=\"mw:WikiLink\" href=\"/wiki/usefully\" title=\"usefully\">usefully</a> extracted from a process: <a rel=\"mw:WikiLink\" href=\"/wiki/apply\" title=\"apply\">applied</a> <a rel=\"mw:WikiLink\" href=\"/wiki/productive#Adjective\" title=\"productive\">productively</a>."
+				},
+				{
+					"definition": "<a rel=\"mw:WikiLink\" href=\"/wiki/product\" title=\"product\">Product</a>; the result of <a rel=\"mw:WikiLink\" href=\"/wiki/effort\" title=\"effort\">effort</a>.\n<ol><li><span class=\"usage-label-sense\" about=\"#mwt128\" typeof=\"mw:Transclusion\"></span> The result of a particular manner of production.",
+					"parsedExamples": [
+						{ "example": "There's a lot of guess<b>work</b> involved." },
+						{
+							"example": "We've got some paper<b>work</b> to do before we can get started. The piece was decorated with intricate filigree <b>work</b>."
+						},
+						{ "example": "It is a <b>work</b> of art." },
+						{ "example": "the poetic <b>works</b> of Alexander Pope" },
+						{
+							"example": "William the Conqueror fortified many castles, throwing up new ramparts, bastions and all manner of <b>works</b>."
+						}
+					],
+					"examples": [
+						"There's a lot of guess<b>work</b> involved.",
+						"We've got some paper<b>work</b> to do before we can get started. The piece was decorated with intricate filigree <b>work</b>.",
+						"It is a <b>work</b> of art.",
+						"the poetic <b>works</b> of Alexander Pope",
+						"William the Conqueror fortified many castles, throwing up new ramparts, bastions and all manner of <b>works</b>."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt128\" typeof=\"mw:Transclusion\"></span> The result of a particular manner of production.",
+					"parsedExamples": [
+						{ "example": "There's a lot of guess<b>work</b> involved." }
+					],
+					"examples": ["There's a lot of guess<b>work</b> involved."]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt130\" typeof=\"mw:Transclusion\"></span> Something produced using the specified material or tool.",
+					"parsedExamples": [
+						{
+							"example": "We've got some paper<b>work</b> to do before we can get started. The piece was decorated with intricate filigree <b>work</b>."
+						}
+					],
+					"examples": [
+						"We've got some paper<b>work</b> to do before we can get started. The piece was decorated with intricate filigree <b>work</b>."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt132\" typeof=\"mw:Transclusion\"></span> A <a rel=\"mw:WikiLink\" href=\"/wiki/literary\" title=\"literary\">literary</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/artistic\" title=\"artistic\">artistic</a>, or <a rel=\"mw:WikiLink\" href=\"/wiki/intellectual\" title=\"intellectual\">intellectual</a> <a rel=\"mw:WikiLink\" href=\"/wiki/production\" title=\"production\">production</a>; a <a rel=\"mw:WikiLink\" href=\"/wiki/creative_work\" title=\"creative work\">creative work</a>.",
+					"parsedExamples": [
+						{ "example": "It is a <b>work</b> of art." },
+						{ "example": "the poetic <b>works</b> of Alexander Pope" }
+					],
+					"examples": [
+						"It is a <b>work</b> of art.",
+						"the poetic <b>works</b> of Alexander Pope"
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt140\" typeof=\"mw:Transclusion\"></span> A <a rel=\"mw:WikiLink\" href=\"/wiki/fortification\" title=\"fortification\">fortification</a>.",
+					"parsedExamples": [
+						{
+							"example": "William the Conqueror fortified many castles, throwing up new ramparts, bastions and all manner of <b>works</b>."
+						}
+					],
+					"examples": [
+						"William the Conqueror fortified many castles, throwing up new ramparts, bastions and all manner of <b>works</b>."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt142\" typeof=\"mw:Transclusion\"></span> The <a rel=\"mw:WikiLink\" href=\"/wiki/staging\" title=\"staging\">staging</a> of events to appear as real."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt143\" typeof=\"mw:Transclusion\"></span> <a rel=\"mw:WikiLink\" href=\"/wiki/ore\" title=\"ore\">Ore</a> before it is <a rel=\"mw:WikiLink\" href=\"/wiki/dress\" title=\"dress\">dressed</a>."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt147\" typeof=\"mw:Transclusion\"></span> The equipment needed to inject a drug (<a rel=\"mw:WikiLink\" href=\"/wiki/syringe\" title=\"syringe\">syringes</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/needle\" title=\"needle\">needles</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/swab\" title=\"swab\">swabs</a> etc.)",
+					"parsedExamples": [
+						{ "example": "Tell me you're using clean <b>works</b> at least." }
+					],
+					"examples": ["Tell me you're using clean <b>works</b> at least."]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt152\" typeof=\"mw:Transclusion\"></span> The confident attitude of a <a rel=\"mw:WikiLink\" href=\"/wiki/drag_queen\" title=\"drag queen\">drag queen</a>."
+				}
+			]
+		},
+		{
+			"partOfSpeech": "Verb",
+			"language": "English",
+			"definitions": [
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt185\" typeof=\"mw:Transclusion\"></span> To do a specific <a rel=\"mw:WikiLink\" href=\"/wiki/task\" title=\"task\">task</a> by <a rel=\"mw:WikiLink\" href=\"/wiki/employ\" title=\"employ\">employing</a> <a rel=\"mw:WikiLink\" href=\"/wiki/physical\" title=\"physical\">physical</a> or <a rel=\"mw:WikiLink\" href=\"/wiki/mental\" title=\"mental\">mental</a> <a rel=\"mw:WikiLink\" href=\"/wiki/power\" title=\"power\">powers</a>.",
+					"parsedExamples": [
+						{ "example": "He's <b>working</b> in a bar." },
+						{ "example": "I <b>work</b> in a national park." },
+						{
+							"example": "She <b>works</b> in the human resources department."
+						},
+						{
+							"example": "He mostly <b>works</b> in logging but sometimes <b>works</b> in carpentry too."
+						},
+						{ "example": "I <b>work</b> as a cleaner." },
+						{ "example": "She <b>works</b> for Microsoft." },
+						{ "example": "He <b>works</b> for the President." },
+						{
+							"example": "I <b>work</b> closely with my Canadian counterparts."
+						},
+						{
+							"example": "You <b>work</b> with computers, right<span typeof=\"mw:Entity\">?</span>"
+						},
+						{
+							"example": "She <b>works</b> with the homeless people from the suburbs."
+						},
+						{ "example": "She <b>works</b> the night clubs." },
+						{ "example": "The salesman <b>works</b> the Midwest." },
+						{ "example": "She's <b>working</b> the phones." }
+					],
+					"examples": [
+						"He's <b>working</b> in a bar.",
+						"I <b>work</b> in a national park.",
+						"She <b>works</b> in the human resources department.",
+						"He mostly <b>works</b> in logging but sometimes <b>works</b> in carpentry too.",
+						"I <b>work</b> as a cleaner.",
+						"She <b>works</b> for Microsoft.",
+						"He <b>works</b> for the President.",
+						"I <b>work</b> closely with my Canadian counterparts.",
+						"You <b>work</b> with computers, right<span typeof=\"mw:Entity\">?</span>",
+						"She <b>works</b> with the homeless people from the suburbs.",
+						"She <b>works</b> the night clubs.",
+						"The salesman <b>works</b> the Midwest.",
+						"She's <b>working</b> the phones."
+					]
+				},
+				{
+					"definition": "Said of one's <a rel=\"mw:WikiLink\" href=\"/wiki/workplace\" title=\"workplace\">workplace</a> (building), or one's department, or one's trade (sphere of business) <style data-mw-deduplicate=\"TemplateStyles:r90144471\" typeof=\"mw:Extension/templatestyles mw:Transclusion\" about=\"#mwt188\">.mw-parser-output .object-usage-tag{font-style:italic}.mw-parser-output .deprecated{color:var(--wikt-palette-grey-lime-8,olivedrab)}</style><span about=\"#mwt188\">[</span><i about=\"#mwt188\">with</i><span about=\"#mwt188\"> </span><b class=\"Latn\" lang=\"en\" about=\"#mwt188\"><a rel=\"mw:WikiLink\" href=\"/wiki/in#English\" title=\"in\">in</a></b><span about=\"#mwt188\"> </span><i about=\"#mwt188\">or</i><span about=\"#mwt188\"> </span><b class=\"Latn\" lang=\"en\" about=\"#mwt188\"><a rel=\"mw:WikiLink\" href=\"/wiki/at#English\" title=\"at\">at</a></b><span about=\"#mwt188\">]</span>.",
+					"parsedExamples": [
+						{ "example": "I <b>work</b> in a national park." },
+						{
+							"example": "She <b>works</b> in the human resources department."
+						},
+						{
+							"example": "He mostly <b>works</b> in logging but sometimes <b>works</b> in carpentry too."
+						}
+					],
+					"examples": [
+						"I <b>work</b> in a national park.",
+						"She <b>works</b> in the human resources department.",
+						"He mostly <b>works</b> in logging but sometimes <b>works</b> in carpentry too."
+					]
+				},
+				{
+					"definition": "Said of one's <a rel=\"mw:WikiLink\" href=\"/wiki/job_title\" title=\"job title\">job title</a> <link rel=\"mw-deduplicated-inline-style\" href=\"mw-data:TemplateStyles:r90144471\" about=\"#mwt193\" typeof=\"mw:Extension/templatestyles mw:Transclusion\"><span about=\"#mwt193\">[</span><i about=\"#mwt193\">with</i><span about=\"#mwt193\"> </span><b class=\"Latn\" lang=\"en\" about=\"#mwt193\"><a rel=\"mw:WikiLink\" href=\"/wiki/as#English\" title=\"as\">as</a></b><span about=\"#mwt193\">]</span>.",
+					"parsedExamples": [{ "example": "I <b>work</b> as a cleaner." }],
+					"examples": ["I <b>work</b> as a cleaner."]
+				},
+				{
+					"definition": "Said of a company or individual who <a rel=\"mw:WikiLink\" href=\"/wiki/employ\" title=\"employ\">employs</a> <link rel=\"mw-deduplicated-inline-style\" href=\"mw-data:TemplateStyles:r90144471\" about=\"#mwt197\" typeof=\"mw:Extension/templatestyles mw:Transclusion\"><span about=\"#mwt197\">[</span><i about=\"#mwt197\">with</i><span about=\"#mwt197\"> </span><b class=\"Latn\" lang=\"en\" about=\"#mwt197\"><a rel=\"mw:WikiLink\" href=\"/wiki/for#English\" title=\"for\">for</a></b><span about=\"#mwt197\">]</span>.",
+					"parsedExamples": [
+						{ "example": "She <b>works</b> for Microsoft." },
+						{ "example": "He <b>works</b> for the President." }
+					],
+					"examples": [
+						"She <b>works</b> for Microsoft.",
+						"He <b>works</b> for the President."
+					]
+				},
+				{
+					"definition": "General use, said of either fellow <a rel=\"mw:WikiLink\" href=\"/wiki/employee\" title=\"employee\">employees</a> or <a rel=\"mw:WikiLink\" href=\"/wiki/instrument\" title=\"instrument\">instruments</a> or <a rel=\"mw:WikiLink\" href=\"/wiki/client\" title=\"client\">clients</a> <link rel=\"mw-deduplicated-inline-style\" href=\"mw-data:TemplateStyles:r90144471\" about=\"#mwt201\" typeof=\"mw:Extension/templatestyles mw:Transclusion\"><span about=\"#mwt201\">[</span><i about=\"#mwt201\">with</i><span about=\"#mwt201\"> </span><b class=\"Latn\" lang=\"en\" about=\"#mwt201\"><a rel=\"mw:WikiLink\" href=\"/wiki/with#English\" title=\"with\">with</a></b><span about=\"#mwt201\">]</span>.",
+					"parsedExamples": [
+						{
+							"example": "I <b>work</b> closely with my Canadian counterparts."
+						},
+						{
+							"example": "You <b>work</b> with computers, right<span typeof=\"mw:Entity\">?</span>"
+						},
+						{
+							"example": "She <b>works</b> with the homeless people from the suburbs."
+						}
+					],
+					"examples": [
+						"I <b>work</b> closely with my Canadian counterparts.",
+						"You <b>work</b> with computers, right<span typeof=\"mw:Entity\">?</span>",
+						"She <b>works</b> with the homeless people from the suburbs."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt206\" typeof=\"mw:Transclusion\"></span> To be employed or <a rel=\"mw:WikiLink\" href=\"/wiki/operate\" title=\"operate\">operate</a> in a certain place, area, or <a rel=\"mw:WikiLink\" href=\"/wiki/speciality\" title=\"speciality\">speciality</a>.",
+					"parsedExamples": [
+						{ "example": "She <b>works</b> the night clubs." },
+						{ "example": "The salesman <b>works</b> the Midwest." }
+					],
+					"examples": [
+						"She <b>works</b> the night clubs.",
+						"The salesman <b>works</b> the Midwest."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt209\" typeof=\"mw:Transclusion\"></span> To be employed or operate in, through<span class=\"serial-comma\" about=\"#mwt210\" typeof=\"mw:Transclusion\">,</span> or by means of.",
+					"parsedExamples": [{ "example": "She's <b>working</b> the phones." }],
+					"examples": ["She's <b>working</b> the phones."]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt212\" typeof=\"mw:Transclusion\"></span> To be <a rel=\"mw:WikiLink\" href=\"/wiki/operative\" title=\"operative\">operative</a> in a specified way.\n<ol><li><span class=\"usage-label-sense\" about=\"#mwt213\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/behave\" title=\"behave\">behave</a> in a certain way when <a rel=\"mw:WikiLink\" href=\"/wiki/handle\" title=\"handle\">handled</a>",
+					"parsedExamples": [
+						{ "example": "This dough does not <b>work</b> easily." },
+						{ "example": "The soft metal <b>works</b> well." },
+						{
+							"example": "He pointed at the car and asked, \"Does it <b>work</b>\"<span typeof=\"mw:Entity\">?</span>"
+						},
+						{
+							"example": "He looked at the bottle of pain pills, wondering if they would <b>work</b>."
+						},
+						{ "example": "My plan didn't <b>work</b>." },
+						{
+							"example": "The chef's steak frites just didn't <b>work</b> for me."
+						},
+						{ "example": "That shirt doesn't <b>work</b> on her." },
+						{
+							"example": "I would have never thought those pieces would go together, but she is <b>working</b> it like nobody's business."
+						}
+					],
+					"examples": [
+						"This dough does not <b>work</b> easily.",
+						"The soft metal <b>works</b> well.",
+						"He pointed at the car and asked, \"Does it <b>work</b>\"<span typeof=\"mw:Entity\">?</span>",
+						"He looked at the bottle of pain pills, wondering if they would <b>work</b>.",
+						"My plan didn't <b>work</b>.",
+						"The chef's steak frites just didn't <b>work</b> for me.",
+						"That shirt doesn't <b>work</b> on her.",
+						"I would have never thought those pieces would go together, but she is <b>working</b> it like nobody's business."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt213\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/behave\" title=\"behave\">behave</a> in a certain way when <a rel=\"mw:WikiLink\" href=\"/wiki/handle\" title=\"handle\">handled</a>",
+					"parsedExamples": [
+						{ "example": "This dough does not <b>work</b> easily." },
+						{ "example": "The soft metal <b>works</b> well." }
+					],
+					"examples": [
+						"This dough does not <b>work</b> easily.",
+						"The soft metal <b>works</b> well."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt216\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/function\" title=\"function\">function</a> <a rel=\"mw:WikiLink\" href=\"/wiki/correctly\" title=\"correctly\">correctly</a>; to <a rel=\"mw:WikiLink\" href=\"/wiki/act\" title=\"act\">act</a> as <a rel=\"mw:WikiLink\" href=\"/wiki/intended\" title=\"intended\">intended</a>; to <a rel=\"mw:WikiLink\" href=\"/wiki/achieve\" title=\"achieve\">achieve</a> the goal <a rel=\"mw:WikiLink\" href=\"/wiki/design\" title=\"design\">designed</a> for.",
+					"parsedExamples": [
+						{
+							"example": "He pointed at the car and asked, \"Does it <b>work</b>\"<span typeof=\"mw:Entity\">?</span>"
+						},
+						{
+							"example": "He looked at the bottle of pain pills, wondering if they would <b>work</b>."
+						},
+						{ "example": "My plan didn't <b>work</b>." }
+					],
+					"examples": [
+						"He pointed at the car and asked, \"Does it <b>work</b>\"<span typeof=\"mw:Entity\">?</span>",
+						"He looked at the bottle of pain pills, wondering if they would <b>work</b>.",
+						"My plan didn't <b>work</b>."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt222\" typeof=\"mw:Transclusion\"></span> To be <a rel=\"mw:WikiLink\" href=\"/wiki/appealing\" title=\"appealing\">appealing</a>; to be <a rel=\"mw:WikiLink\" href=\"/wiki/approved\" title=\"approved\">approved</a> of.",
+					"parsedExamples": [
+						{
+							"example": "The chef's steak frites just didn't <b>work</b> for me."
+						},
+						{ "example": "That shirt doesn't <b>work</b> on her." }
+					],
+					"examples": [
+						"The chef's steak frites just didn't <b>work</b> for me.",
+						"That shirt doesn't <b>work</b> on her."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt225\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/cause\" title=\"cause\">cause</a> (someone) to <a rel=\"mw:WikiLink\" href=\"/wiki/feel\" title=\"feel\">feel</a> (something); to <a rel=\"mw:WikiLink\" href=\"/wiki/do\" title=\"do\">do</a> unto somebody (something, whether good or bad)."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt228\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/hurt\" title=\"hurt\">hurt</a>; to <a rel=\"mw:WikiLink\" href=\"/wiki/ache\" title=\"ache\">ache</a>."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt232\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/pull_off\" title=\"pull off\">pull off</a>; to wear, perform, etc. successfully or to advantage.",
+					"parsedExamples": [
+						{
+							"example": "I would have never thought those pieces would go together, but she is <b>working</b> it like nobody's business."
+						}
+					],
+					"examples": [
+						"I would have never thought those pieces would go together, but she is <b>working</b> it like nobody's business."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt234\" typeof=\"mw:Transclusion\"></span> To perform with a <a rel=\"mw:WikiLink\" href=\"/wiki/confident\" title=\"confident\">confident</a> <a rel=\"mw:WikiLink\" href=\"/wiki/attitude\" title=\"attitude\">attitude</a>, particularly as a <a rel=\"mw:WikiLink\" href=\"/wiki/drag_queen\" title=\"drag queen\">drag queen</a>."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt237\" typeof=\"mw:Transclusion\"></span> To cause to <a rel=\"mw:WikiLink\" href=\"/wiki/operate\" title=\"operate\">operate</a>, be <a rel=\"mw:WikiLink\" href=\"/wiki/productive\" title=\"productive\">productive</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/behave\" title=\"behave\">behave</a> a certain way<span class=\"serial-comma\" about=\"#mwt238\" typeof=\"mw:Transclusion\">,</span> or <a rel=\"mw:WikiLink\" href=\"/wiki/happen\" title=\"happen\">happen</a>.\n<ol><li>To <a rel=\"mw:WikiLink\" href=\"/wiki/set\" title=\"set\">set</a> into <a rel=\"mw:WikiLink\" href=\"/wiki/action\" title=\"action\">action</a>.",
+					"parsedExamples": [
+						{ "example": "He <b>worked</b> the levers." },
+						{
+							"example": "The mine was <b>worked</b> until the last scrap of ore had been extracted."
+						},
+						{ "example": "He used pliers to <b>work</b> the wire into shape." },
+						{
+							"example": "The rock musician <b>worked</b> the crowd of young girls into a frenzy."
+						},
+						{ "example": "She knows how to <b>work</b> the system." },
+						{ "example": "I cannot <b>work</b> a miracle." },
+						{ "example": "He is <b>working</b> his servants hard." },
+						{ "example": "They <b>worked</b> on her to join the group." },
+						{
+							"example": "He <b>worked</b> that basketball like a boss<span typeof=\"mw:Entity\">!</span>"
+						},
+						{ "example": "That summer I <b>worked</b> a job at the beach." }
+					],
+					"examples": [
+						"He <b>worked</b> the levers.",
+						"The mine was <b>worked</b> until the last scrap of ore had been extracted.",
+						"He used pliers to <b>work</b> the wire into shape.",
+						"The rock musician <b>worked</b> the crowd of young girls into a frenzy.",
+						"She knows how to <b>work</b> the system.",
+						"I cannot <b>work</b> a miracle.",
+						"He is <b>working</b> his servants hard.",
+						"They <b>worked</b> on her to join the group.",
+						"He <b>worked</b> that basketball like a boss<span typeof=\"mw:Entity\">!</span>",
+						"That summer I <b>worked</b> a job at the beach."
+					]
+				},
+				{
+					"definition": "To <a rel=\"mw:WikiLink\" href=\"/wiki/set\" title=\"set\">set</a> into <a rel=\"mw:WikiLink\" href=\"/wiki/action\" title=\"action\">action</a>.",
+					"parsedExamples": [{ "example": "He <b>worked</b> the levers." }],
+					"examples": ["He <b>worked</b> the levers."]
+				},
+				{ "definition": "" },
+				{
+					"definition": "To <a rel=\"mw:WikiLink\" href=\"/wiki/exhaust\" title=\"exhaust\">exhaust</a>, by working.",
+					"parsedExamples": [
+						{
+							"example": "The mine was <b>worked</b> until the last scrap of ore had been extracted."
+						}
+					],
+					"examples": [
+						"The mine was <b>worked</b> until the last scrap of ore had been extracted."
+					]
+				},
+				{
+					"definition": "To <a rel=\"mw:WikiLink\" href=\"/wiki/shape\" title=\"shape\">shape</a>, <a rel=\"mw:WikiLink\" href=\"/wiki/form\" title=\"form\">form</a>, or <a rel=\"mw:WikiLink\" href=\"/wiki/improve\" title=\"improve\">improve</a> a <a rel=\"mw:WikiLink\" href=\"/wiki/material\" title=\"material\">material</a>.",
+					"parsedExamples": [
+						{ "example": "He used pliers to <b>work</b> the wire into shape." }
+					],
+					"examples": ["He used pliers to <b>work</b> the wire into shape."]
+				},
+				{
+					"definition": "To <a rel=\"mw:WikiLink\" href=\"/wiki/provoke\" title=\"provoke\">provoke</a> or <a rel=\"mw:WikiLink\" href=\"/wiki/excite\" title=\"excite\">excite</a>; to <a rel=\"mw:WikiLink\" href=\"/wiki/influence\" title=\"influence\">influence</a>.",
+					"parsedExamples": [
+						{
+							"example": "The rock musician <b>worked</b> the crowd of young girls into a frenzy."
+						}
+					],
+					"examples": [
+						"The rock musician <b>worked</b> the crowd of young girls into a frenzy."
+					]
+				},
+				{
+					"definition": "To <a rel=\"mw:WikiLink\" href=\"/wiki/use\" title=\"use\">use</a> or <a rel=\"mw:WikiLink\" href=\"/wiki/manipulate\" title=\"manipulate\">manipulate</a> to one’s <a rel=\"mw:WikiLink\" href=\"/wiki/advantage\" title=\"advantage\">advantage</a>.",
+					"parsedExamples": [
+						{ "example": "She knows how to <b>work</b> the system." }
+					],
+					"examples": ["She knows how to <b>work</b> the system."]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt247\" typeof=\"mw:Transclusion\"></span> To cause to <a rel=\"mw:WikiLink\" href=\"/wiki/happen\" title=\"happen\">happen</a> or to <a rel=\"mw:WikiLink\" href=\"/wiki/occur\" title=\"occur\">occur</a> as a <a rel=\"mw:WikiLink\" href=\"/wiki/consequence\" title=\"consequence\">consequence</a>.",
+					"parsedExamples": [{ "example": "I cannot <b>work</b> a miracle." }],
+					"examples": ["I cannot <b>work</b> a miracle."]
+				},
+				{
+					"definition": "To <a rel=\"mw:WikiLink\" href=\"/wiki/force\" title=\"force\">force</a> or <a rel=\"mw:WikiLink\" href=\"/wiki/compel\" title=\"compel\">compel</a> to work.",
+					"parsedExamples": [
+						{ "example": "He is <b>working</b> his servants hard." }
+					],
+					"examples": ["He is <b>working</b> his servants hard."]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt251\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/influence\" title=\"influence\">influence</a>.",
+					"parsedExamples": [
+						{ "example": "They <b>worked</b> on her to join the group." }
+					],
+					"examples": ["They <b>worked</b> on her to join the group."]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt253\" typeof=\"mw:Transclusion\"></span> To use <a rel=\"mw:WikiLink\" href=\"/wiki/intensely\" title=\"intensely\">intensely</a> and <a rel=\"mw:WikiLink\" href=\"/wiki/successfully\" title=\"successfully\">successfully</a>.",
+					"parsedExamples": [
+						{
+							"example": "He <b>worked</b> that basketball like a boss<span typeof=\"mw:Entity\">!</span>"
+						}
+					],
+					"examples": [
+						"He <b>worked</b> that basketball like a boss<span typeof=\"mw:Entity\">!</span>"
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt255\" typeof=\"mw:Transclusion\"></span> To be employed at (a job or role).",
+					"parsedExamples": [
+						{ "example": "That summer I <b>worked</b> a job at the beach." }
+					],
+					"examples": ["That summer I <b>worked</b> a job at the beach."]
+				},
+				{
+					"definition": "To continue <a rel=\"mw:WikiLink\" href=\"/wiki/laboriously\" title=\"laboriously\">laboriously</a>.\n<ol><li><span class=\"usage-label-sense\" about=\"#mwt257\" typeof=\"mw:Transclusion\"></span> To move or <a rel=\"mw:WikiLink\" href=\"/wiki/progress\" title=\"progress\">progress</a> slowly or with difficulty; to <a rel=\"mw:WikiLink\" href=\"/wiki/proceed\" title=\"proceed\">proceed</a> with <a rel=\"mw:WikiLink\" href=\"/wiki/effort\" title=\"effort\">effort</a>.",
+					"parsedExamples": [
+						{ "example": "to <b>work</b> into the earth" },
+						{ "example": "He <b>worked</b> his way through the crowd." },
+						{ "example": "The dye <b>worked</b> its way through." },
+						{
+							"example": "Using some tweezers, she <b>worked</b> the bee sting out of her hand."
+						},
+						{ "example": "His fingers <b>worked</b> with tension." },
+						{ "example": "A ship <b>works</b> in a heavy sea." }
+					],
+					"examples": [
+						"to <b>work</b> into the earth",
+						"He <b>worked</b> his way through the crowd.",
+						"The dye <b>worked</b> its way through.",
+						"Using some tweezers, she <b>worked</b> the bee sting out of her hand.",
+						"His fingers <b>worked</b> with tension.",
+						"A ship <b>works</b> in a heavy sea."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt257\" typeof=\"mw:Transclusion\"></span> To move or <a rel=\"mw:WikiLink\" href=\"/wiki/progress\" title=\"progress\">progress</a> slowly or with difficulty; to <a rel=\"mw:WikiLink\" href=\"/wiki/proceed\" title=\"proceed\">proceed</a> with <a rel=\"mw:WikiLink\" href=\"/wiki/effort\" title=\"effort\">effort</a>.",
+					"parsedExamples": [{ "example": "to <b>work</b> into the earth" }],
+					"examples": ["to <b>work</b> into the earth"]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt260\" typeof=\"mw:Transclusion\"></span> To move or progress slowly <link rel=\"mw-deduplicated-inline-style\" href=\"mw-data:TemplateStyles:r90144471\" about=\"#mwt261\" typeof=\"mw:Extension/templatestyles mw:Transclusion\"><span about=\"#mwt261\">[</span><i about=\"#mwt261\">with</i><span about=\"#mwt261\"> </span><b class=\"Latn\" lang=\"en\" about=\"#mwt261\"><a rel=\"mw:WikiLink\" href=\"/wiki/one's_way#English\" title=\"one's way\">one's way</a></b><span about=\"#mwt261\">]</span>.",
+					"parsedExamples": [
+						{ "example": "He <b>worked</b> his way through the crowd." },
+						{ "example": "The dye <b>worked</b> its way through." }
+					],
+					"examples": [
+						"He <b>worked</b> his way through the crowd.",
+						"The dye <b>worked</b> its way through."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt265\" typeof=\"mw:Transclusion\"></span> To cause to move slowly or with difficulty.",
+					"parsedExamples": [
+						{
+							"example": "Using some tweezers, she <b>worked</b> the bee sting out of her hand."
+						}
+					],
+					"examples": [
+						"Using some tweezers, she <b>worked</b> the bee sting out of her hand."
+					]
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt268\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/move\" title=\"move\">move</a> in an <a rel=\"mw:WikiLink\" href=\"/wiki/agitated\" title=\"agitated\">agitated</a> <a rel=\"mw:WikiLink\" href=\"/wiki/manner\" title=\"manner\">manner</a>.",
+					"parsedExamples": [
+						{ "example": "His fingers <b>worked</b> with tension." },
+						{ "example": "A ship <b>works</b> in a heavy sea." }
+					],
+					"examples": [
+						"His fingers <b>worked</b> with tension.",
+						"A ship <b>works</b> in a heavy sea."
+					]
+				},
+				{
+					"definition": "To <a rel=\"mw:WikiLink\" href=\"/wiki/ferment\" title=\"ferment\">ferment</a> (produce alcohol from sugars).\n<ol><li><span class=\"usage-label-sense\" about=\"#mwt272\" typeof=\"mw:Transclusion\"></span> To ferment.</li>\n<li><span class=\"usage-label-sense\" about=\"#mwt273\" typeof=\"mw:Transclusion\"></span> To cause to ferment.\n</li></ol>"
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt272\" typeof=\"mw:Transclusion\"></span> To ferment."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt273\" typeof=\"mw:Transclusion\"></span> To cause to ferment."
+				},
+				{
+					"definition": "<span class=\"usage-label-sense\" about=\"#mwt275\" typeof=\"mw:Transclusion\"></span> To <a rel=\"mw:WikiLink\" href=\"/wiki/embroider\" title=\"embroider\">embroider</a> with <a rel=\"mw:WikiLink\" href=\"/wiki/thread\" title=\"thread\">thread</a>."
+				}
+			]
+		}
+	],
+	"zh": [
+		{
+			"partOfSpeech": "Adjective",
+			"language": "Chinese",
+			"definitions": [
+				{
+					"definition": "<a rel=\"mw:WikiLink\" href=\"/wiki/working\" title=\"working\">working</a> as <a rel=\"mw:WikiLink\" href=\"/wiki/intend\" title=\"intend\">intended</a>; <a rel=\"mw:WikiLink\" href=\"/wiki/functioning\" title=\"functioning\">functioning</a>"
+				},
+				{
+					"definition": "<a rel=\"mw:WikiLink\" href=\"/wiki/effective\" title=\"effective\">effective</a>"
+				}
+			]
+		},
+		{
+			"partOfSpeech": "Verb",
+			"language": "Chinese",
+			"definitions": [
+				{
+					"definition": "to <a rel=\"mw:WikiLink\" href=\"/wiki/work#English\" class=\"mw-selflink-fragment\">work</a> as <a rel=\"mw:WikiLink\" href=\"/wiki/intend\" title=\"intend\">intended</a>; to <a rel=\"mw:WikiLink\" href=\"/wiki/function\" title=\"function\">function</a>"
+				}
+			]
+		}
+	],
+	"other": [
+		{
+			"partOfSpeech": "Noun",
+			"language": "Middle English",
+			"definitions": [
+				{
+					"definition": "<span class=\"form-of-definition use-with-mention\" about=\"#mwt302\" typeof=\"mw:Transclusion\">alternative form of <span class=\"form-of-definition-link\"><i class=\"Latn mention\" lang=\"enm\"><a rel=\"mw:WikiLink\" href=\"/wiki/werk#Middle_English\" title=\"werk\">werk</a></i></span></span>"
+				}
+			]
+		}
+	]
+}
