@@ -4,6 +4,7 @@ import {
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
+	readdirSync,
 	readFileSync,
 	rmSync,
 	writeFileSync,
@@ -14,6 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import puppeteer from "puppeteer-core";
+import { importNotebook } from "../../../extension/backup.js";
 import { parseMeanings } from "../../../extension/meanings-text.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -82,6 +84,37 @@ async function startSession(evidenceDir) {
 	return {
 		url,
 		extensionId,
+		// Same as removing the extension on chrome://extensions and loading the
+		// folder again; removing it deletes chrome.storage with it.
+		async reinstallExtension() {
+			await browser.uninstallExtension(extensionId);
+			const id = await browser.installExtension(extensionDir);
+			if (id !== extensionId) throw new Error(`ID が変わった: ${id}`);
+			await wait(500);
+			await page.reload();
+		},
+		// Downloads land in dir under the name the page suggests.
+		async downloadTo(dir) {
+			const cdp = await browser.target().createCDPSession();
+			await cdp.send("Browser.setDownloadBehavior", {
+				behavior: "allow",
+				downloadPath: dir,
+			});
+		},
+		// Clicks a button that opens the file picker and picks file in it.
+		async chooseFileInPanel(selector, file, { dialog } = {}) {
+			const panel = await panelTarget().asPage();
+			await panel.bringToFront();
+			if (dialog !== undefined)
+				panel.once("dialog", (d) => (dialog ? d.accept() : d.dismiss()));
+			const [chooser] = await Promise.all([
+				panel.waitForFileChooser(),
+				panel.click(selector),
+			]);
+			await chooser.accept([file]);
+			await wait(500);
+			await page.bringToFront();
+		},
 		async restartChrome() {
 			await browser.close();
 			await launch();
@@ -404,6 +437,79 @@ const journeys = {
 			await s.listHeadwords(),
 		);
 		await s.screenshot("list");
+	},
+	async backup(s, check, evidenceDir) {
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		await s.clickInPanel("#save");
+		await s.dblclick("#idempotent");
+		await s.panelMeanings();
+		await s.clickInPanel("#save");
+		await s.goto("/other");
+		await s.dblclick("#again");
+		const before = await s.savedWords();
+		check(
+			"準備: 2 語と、文脈 2 件の語がある",
+			Object.keys(before).length === 2 &&
+				before.ubiquitous?.contexts.length === 2,
+			before,
+		);
+
+		const downloads = path.join(evidenceDir, "downloads");
+		mkdirSync(downloads, { recursive: true });
+		await s.downloadTo(downloads);
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel("#export");
+		await wait(1000);
+		const [exported] = readdirSync(downloads).filter((f) =>
+			/^wordtrail-\d{4}-\d{2}-\d{2}\.json$/.test(f),
+		);
+		const file = exported && path.join(downloads, exported);
+		check(
+			"書き出しで、全データが 1 つの JSON ファイルとしてダウンロードされる",
+			Boolean(file) &&
+				isDeepStrictEqual(
+					importNotebook(readFileSync(file, "utf8")).words,
+					before,
+				),
+			readdirSync(downloads),
+		);
+
+		const broken = path.join(evidenceDir, "broken.json");
+		writeFileSync(broken, JSON.stringify({ words: "not a list" }));
+		await s.chooseFileInPanel("#import", broken);
+		check(
+			"形の違うファイルは拒否され、単語帳は変わらない",
+			(await s.panelText("list-status")).startsWith("読み込めませんでした") &&
+				isDeepStrictEqual(await s.savedWords(), before),
+			await s.panelText("list-status"),
+		);
+
+		await s.reinstallExtension();
+		await s.openPanel();
+		check(
+			"拡張を削除して入れ直すと、単語帳は空になる",
+			Object.keys(await s.savedWords()).length === 0,
+		);
+		await s.clickInPanel("#toggle-list");
+		await s.chooseFileInPanel("#import", file, { dialog: false });
+		check(
+			"読み込みの確認でキャンセルすると、置き換わらない",
+			Object.keys(await s.savedWords()).length === 0,
+		);
+		await s.chooseFileInPanel("#import", file, { dialog: true });
+		check(
+			"読み込みの確認で承認すると、全単語と全文脈が元に戻る",
+			isDeepStrictEqual(await s.savedWords(), before),
+			await s.savedWords(),
+		);
+		check(
+			"読み込んだ単語が一覧に出る",
+			(await s.listHeadwords()).length === 2,
+			await s.listHeadwords(),
+		);
+		await s.screenshot("backup");
 	},
 	async iframe(s, check) {
 		await s.openPanel();

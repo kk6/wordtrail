@@ -63,6 +63,12 @@
 		<span id="status" role="status"></span>
 		</main>
 		<section id="list" hidden>
+			<p>
+				<button id="export" type="button">書き出し</button>
+				<button id="import" type="button">読み込み</button>
+				<input id="import-file" type="file" accept=".json,application/json" hidden />
+				<span id="list-status" role="status"></span>
+			</p>
 			<h2>登録した単語（新しい順）</h2>
 			<p id="empty">まだ単語がありません。</p>
 			<ol id="words"></ol>

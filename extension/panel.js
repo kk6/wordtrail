@@ -1,3 +1,4 @@
+import { exportNotebook, importNotebook } from "./backup.js";
 import { lookUp } from "./dictionary.js";
 import { formatMeanings, parseMeanings } from "./meanings-text.js";
 import { newestFirst, removeWord, saveEntry } from "./notebook.js";
@@ -16,6 +17,10 @@ const [
 	toggleList,
 	words,
 	empty,
+	exportButton,
+	importButton,
+	importFile,
+	listStatus,
 ] = [
 	"word",
 	"meanings",
@@ -30,6 +35,10 @@ const [
 	"toggle-list",
 	"words",
 	"empty",
+	"export",
+	"import",
+	"import-file",
+	"list-status",
 ].map((id) => document.getElementById(id));
 let shown;
 
@@ -125,6 +134,43 @@ function entryItem(entry) {
 	item.append(details);
 	return item;
 }
+
+exportButton.addEventListener("click", async () => {
+	const { words: notebook = {} } = await chrome.storage.local.get("words");
+	const now = new Date().toISOString();
+	const link = document.createElement("a");
+	link.href = URL.createObjectURL(
+		new Blob([exportNotebook(notebook, now)], { type: "application/json" }),
+	);
+	link.download = `wordtrail-${now.slice(0, 10)}.json`;
+	link.click();
+	// Revoking right after click() can cancel the download before it starts.
+	setTimeout(() => URL.revokeObjectURL(link.href), 10_000);
+	listStatus.textContent = `${Object.keys(notebook).length} 語を書き出しました。`;
+});
+
+importButton.addEventListener("click", () => importFile.click());
+
+importFile.addEventListener("change", async () => {
+	const [file] = importFile.files;
+	importFile.value = "";
+	if (!file) return;
+	const result = importNotebook(await file.text());
+	if (result.error) {
+		listStatus.textContent = `読み込めませんでした。${result.error}単語帳は変わっていません。`;
+		return;
+	}
+	const { words: notebook = {} } = await chrome.storage.local.get("words");
+	const count = (w) => Object.keys(w).length;
+	if (
+		!confirm(
+			`今の単語帳（${count(notebook)} 語）を、ファイルの ${count(result.words)} 語で置き換えますか？`,
+		)
+	)
+		return;
+	await chrome.storage.local.set({ words: result.words });
+	listStatus.textContent = `${count(result.words)} 語を読み込みました。`;
+});
 
 toggleList.addEventListener("click", () =>
 	list.hidden ? showList() : showEditor(),
