@@ -1,1 +1,1 @@
-次: ダブルクリックでパネルを自動で開くのをやめる（2026-10-18 に決定）。パネルはアイコンか Chrome のサイドパネルのメニューで開き、閉じているときのダブルクリックは最後の単語を覚えておくだけにする。直すのは extension/background.js の sidePanel.open の行、ADR-0001 の受け入れ条件 1、README、TODO.md の T1 のメモ、verify-wordtrail の select-word ジャーニー（パネルを開く代わりの手段を探す）。終わったら T3 へ
+次: T3 の 1 項目目。dictionaryapi.dev の `running` と 404 の応答を test/fixtures に保存し、`meanings` に変換する処理のテストから書く（品詞ごとに最初の 2 個まで、404 と通信の失敗では空）

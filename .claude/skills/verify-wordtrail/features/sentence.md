@@ -18,6 +18,7 @@
 Preconditions:
 
 - `verify.mjs doctor` が `doctor: OK` を出す。
+- ジャーニーの最初に `openPanel` でパネルのページを開いておく（開き方は [単語を選ぶ](./select-word.md) の Gotchas を参照）。
 
 - **1 文と URL。** `#idempotent` をダブルクリックする。`verify.mjs run sentence` で、`#sentence` が `単語 The API is ubiquitous and idempotent.`、`#url` が試験用ページの URL になることを確かめる。
 - **入れ子と略語。** `#deprecated`（`<em>` の中の `<b>`）をダブルクリックする。`#sentence` が `The U.S. team has deprecated the old API.` になる。

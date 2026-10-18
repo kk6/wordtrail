@@ -76,6 +76,17 @@ async function startSession(evidenceDir) {
 			await wait(1200);
 		},
 		panelOpen: () => Boolean(panelTarget()),
+		// The real entry is the toolbar icon, which puppeteer can't click, and a
+		// CDP userGesture doesn't count as a gesture for sidePanel.open(). So the
+		// panel page is opened in a tab instead.
+		async openPanel() {
+			const panel = await browser.newPage();
+			await panel.goto(
+				`chrome-extension://${new URL(worker.url()).host}/panel.html`,
+			);
+			await page.bringToFront();
+			await wait(300);
+		},
 		async panelText(id) {
 			const panel = await panelTarget().asPage();
 			return panel.$eval(`#${id}`, (e) => e.textContent);
@@ -103,11 +114,12 @@ async function startSession(evidenceDir) {
 // Each journey drives the real user path and records checks; see features/.
 const journeys = {
 	async "select-word"(s, check) {
-		await s.dblclick("#ja");
-		check("日本語の語ではパネルが開かない", !s.panelOpen());
 		await s.dblclick("#ubiquitous");
+		check("閉じた状態のダブルクリックではパネルが開かない", !s.panelOpen());
+		await s.dblclick("#ja");
+		await s.openPanel();
 		check(
-			"閉じた状態からダブルクリックで開き、単語が出る",
+			"パネルを開くと、日本語の語は飛ばして最後の英単語が出る",
 			(await s.panelText("word")) === "ubiquitous",
 		);
 		await s.dblclick("#idempotent");
@@ -118,6 +130,7 @@ const journeys = {
 		await s.screenshot("select-word");
 	},
 	async sentence(s, check) {
+		await s.openPanel();
 		await s.dblclick("#idempotent");
 		check(
 			"単語を含む 1 文が出る",
