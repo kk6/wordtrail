@@ -72,3 +72,9 @@ Chrome Web Store には公開していません。手元のフォルダから読
 ## 設計の経緯
 
 なぜこの形にしたか、検討して見送った機能は何かは、[ADR-0001](docs/adr/0001-vocabulary-notebook-while-reading.md) にまとめています。
+
+## ライセンス
+
+[MIT](LICENSE) です。
+
+意味は [Wiktionary](https://en.wiktionary.org/) から取得しています。Wiktionary の内容は [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) で提供されていて、テスト用に保存した `test/fixtures/wiktionary-*.json` も同じライセンスです。
