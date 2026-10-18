@@ -144,14 +144,35 @@ async function startSession(evidenceDir) {
 			await panel.keyboard.type(text);
 			await page.bringToFront();
 		},
-		async clickInPanel(id) {
+		// dialog: true or false accepts or dismisses the confirm() it opens.
+		async clickInPanel(selector, { dialog } = {}) {
 			const panel = await panelTarget().asPage();
 			await panel.bringToFront();
-			await panel.click(`#${id}`);
+			if (dialog !== undefined)
+				panel.once("dialog", (d) => (dialog ? d.accept() : d.dismiss()));
+			await panel.click(selector);
 			await wait(300);
 			await page.bringToFront();
 		},
-		// Read-only look at what the panel saved, until the list screen (T5) exists.
+		async listHeadwords() {
+			const panel = await panelTarget().asPage();
+			return panel.$$eval("#words > li", (items) =>
+				items.map((item) => item.dataset.headword),
+			);
+		},
+		// What the reader sees in an opened word of the list.
+		async listDetail(headword) {
+			const panel = await panelTarget().asPage();
+			return panel.$eval(
+				`#words li[data-headword="${headword}"] details`,
+				(d) => ({
+					open: d.open,
+					meanings: d.querySelector(".meanings").innerText,
+					contexts: [...d.querySelectorAll("ol li")].map((li) => li.innerText),
+				}),
+			);
+		},
+		// Read-only look at what was saved, for values the panel doesn't show as-is.
 		async savedWords() {
 			const panel = await panelTarget().asPage();
 			return panel.evaluate(
@@ -260,7 +281,7 @@ const journeys = {
 		await s.panelMeanings();
 		await s.typeInPanel("word", "run");
 		await s.typeInPanel("meanings", "verb:\n走る\n\nnoun:\n走ること");
-		await s.clickInPanel("save");
+		await s.clickInPanel("#save");
 		check("保存したと出る", (await s.panelText("status")) === "保存しました。");
 		const { run } = await s.savedWords();
 		check("書き換えた見出し語で保存される", run?.headword === "run");
@@ -286,7 +307,7 @@ const journeys = {
 		await s.dblclick("#ubiquitous");
 		await s.panelMeanings();
 		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
-		await s.clickInPanel("save");
+		await s.clickInPanel("#save");
 		await s.goto("/other");
 		await s.dblclick("#again");
 		check(
@@ -318,7 +339,7 @@ const journeys = {
 		await s.dblclick("#ubiquitous");
 		await s.panelMeanings();
 		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
-		await s.clickInPanel("save");
+		await s.clickInPanel("#save");
 		const stillThere = async (label) => {
 			await s.openPanel();
 			await s.dblclick("#ubiquitous");
@@ -336,6 +357,53 @@ const journeys = {
 		await s.restartChrome();
 		await stillThere("Chrome を再起動した後");
 		await s.screenshot("persist");
+	},
+	async list(s, check) {
+		await s.openPanel();
+		for (const id of ["#ubiquitous", "#idempotent", "#deprecated"]) {
+			await s.dblclick(id);
+			await s.panelMeanings();
+			await s.clickInPanel("#save");
+		}
+		await s.clickInPanel("#toggle-list");
+		check(
+			"一覧は新しい順に並ぶ",
+			isDeepStrictEqual(await s.listHeadwords(), [
+				"deprecated",
+				"idempotent",
+				"ubiquitous",
+			]),
+			await s.listHeadwords(),
+		);
+		await s.clickInPanel('#words li[data-headword="idempotent"] summary');
+		const detail = await s.listDetail("idempotent");
+		check(
+			"単語をクリックすると、意味とこれまでの文脈が出る",
+			detail.open &&
+				detail.meanings.length > 0 &&
+				detail.contexts.length === 1 &&
+				detail.contexts[0].startsWith(
+					"単語 The API is ubiquitous and idempotent.",
+				),
+			detail,
+		);
+		const remove = '#words li[data-headword="ubiquitous"] .delete';
+		await s.clickInPanel('#words li[data-headword="ubiquitous"] summary');
+		await s.clickInPanel(remove, { dialog: false });
+		check(
+			"削除の確認でキャンセルすると、消えない",
+			(await s.listHeadwords()).length === 3,
+		);
+		await s.clickInPanel(remove, { dialog: true });
+		check(
+			"削除の確認で承認すると、その単語だけが消える",
+			isDeepStrictEqual(await s.listHeadwords(), [
+				"deprecated",
+				"idempotent",
+			]) && !("ubiquitous" in (await s.savedWords())),
+			await s.listHeadwords(),
+		);
+		await s.screenshot("list");
 	},
 	async iframe(s, check) {
 		await s.openPanel();

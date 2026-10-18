@@ -41,7 +41,7 @@ description: Wordtrail（英語のページで単語をダブルクリックす�
 .claude/skills/verify-wordtrail/verify.mjs run all
 ```
 
-ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`meanings`、`save`、`registered`、`persist`、`iframe`、`stable-id` の 8 つ。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
+ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`meanings`、`save`、`registered`、`persist`、`list`、`iframe`、`stable-id` の 9 つ。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
 
 - 操作は `page.mouse.click(..., { count: 2 })` で行う。これは本物のダブルクリックで、ユーザー操作として扱われる。`page.evaluate` で `dblclick` イベントを作るのは使わない。puppeteer は `evaluate` にユーザー操作の印を付けるので、本物の操作でなくても通ってしまう。
 - ダブルクリックする場所は、試験用ページの要素の `id`（`#ubiquitous`、`#deprecated` など）で指定する。座標は書かない。
@@ -56,7 +56,7 @@ description: Wordtrail（英語のページで単語をダブルクリックす�
 	- `<journey>-page.png` と `<journey>-panel.png` は、最後の操作の後のページとパネルの画面。
 - 実行の最後に出る `evidence:` の行が、その回の証跡のフォルダを指す。終了コードは、全項目が合格なら 0、1 つでも不合格なら 1。
 - 合格の基準は次のとおり。
-	- 内部の関数を呼んだり、`chrome.storage` に直接書き込んだりせず、ページ上のダブルクリックから始める。保存の中身は、一覧の画面（T5）ができるまで `savedWords()` で読むだけにする。
+	- 内部の関数を呼んだり、`chrome.storage` に直接書き込んだりせず、ページ上のダブルクリックから始める。保存の中身は、画面に出ない項目（文脈の URL など）を確かめるときだけ `savedWords()` で読む。読むだけで、書き込まない。
 	- 操作の結果として、パネルに何が出たかを確かめる。最後の画面だけでなく、途中の状態（パネルが開いていない、など）も項目にする。
 	- 保存の機能（T4 以降）では、パネルに表示されたことに加えて、再読み込みの後にも残っていることを確かめる。
 - 辞書 API（T3 以降）は、本物の `en.wiktionary.org` に接続する。ネットワークにつながらない環境では、意味に関する項目は不合格になる。合格扱いにはしない。

@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { addContext, addEncounter, saveEntry } from "../extension/notebook.js";
+import {
+	addContext,
+	addEncounter,
+	newestFirst,
+	removeWord,
+	saveEntry,
+} from "../extension/notebook.js";
 
 const entry = {
 	headword: "run",
@@ -96,4 +102,32 @@ test("登録済みの語に同じ文で出会っても、文脈は増えない",
 test("未登録の語に出会っても、単語帳は変わらない", () => {
 	const words = { run: entry };
 	assert.equal(addEncounter(words, "running", context), words);
+});
+
+const word = (headword, createdAt) => ({
+	headword,
+	meanings: [],
+	contexts: [],
+	createdAt,
+});
+
+test("一覧は、登録した日時の新しい順に並ぶ", () => {
+	const words = {
+		apple: word("apple", "2026-10-18T09:00:00Z"),
+		cherry: word("cherry", "2026-10-20T09:00:00Z"),
+		banana: word("banana", "2026-10-19T09:00:00Z"),
+	};
+	assert.deepEqual(
+		newestFirst(words).map((entry) => entry.headword),
+		["cherry", "banana", "apple"],
+	);
+});
+
+test("削除すると、その単語だけが単語帳からなくなる", () => {
+	const words = {
+		run: entry,
+		apple: word("apple", "2026-10-18T09:00:00Z"),
+	};
+	assert.deepEqual(removeWord(words, "Run"), { apple: words.apple });
+	assert.deepEqual(Object.keys(words), ["run", "apple"]);
 });

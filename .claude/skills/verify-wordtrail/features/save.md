@@ -26,7 +26,7 @@ Preconditions:
 
 ## Gotchas
 
-- 保存の中身は、一覧の画面（T5）ができるまで、パネルのページから `chrome.storage.local` を読んで確かめる。読むだけで、書き込みはしない。一覧ができたら、一覧の画面で確かめる形に替える。
+- 保存の中身は、パネルのページから `chrome.storage.local` を読んで確かめる（`savedWords()`）。文脈の URL は一覧の画面にも出るが、値をそのまま比べるため、読むだけで使っている。書き込みはしない。
 - `chrome.storage` から読んだオブジェクトはキーの順番が変わるので、`JSON.stringify` で比べない。`isDeepStrictEqual` を使う。
 - `save-empty` はこのジャーニーでは確かめていない。
 - 入力はパネルのタブを前面に出してから、本物のキー入力で行う。`value` を直接書き換えない。

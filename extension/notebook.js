@@ -38,3 +38,24 @@ export function addEncounter(words, word, context) {
 		? { ...words, [key]: addContext(words[key], context) }
 		: words;
 }
+
+/**
+ * The words, most recently registered first. createdAt is ISO 8601, so the
+ * strings sort the same way as the times.
+ * @param {Record<string, { createdAt: string }>} words
+ */
+export function newestFirst(words) {
+	return Object.values(words).sort((a, b) =>
+		b.createdAt.localeCompare(a.createdAt),
+	);
+}
+
+/**
+ * The notebook without the word.
+ * @param {Record<string, object>} words
+ * @param {string} headword
+ */
+export function removeWord(words, headword) {
+	const { [headword.toLowerCase()]: _, ...rest } = words;
+	return rest;
+}
