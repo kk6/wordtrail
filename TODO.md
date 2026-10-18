@@ -43,9 +43,9 @@
 - [x] パネルの新規登録の画面に、見出し語（小文字）、意味、文、URL が入っている
 
 	メモ: 2026-10-18 に、一時プロファイルの Chrome で、`Running` から見出し語 `running` と Wiktionary の意味が出ること、辞書にない語で手での入力を案内することを確かめた（verify の `meanings`）。
-- [ ] 種類の違う英語のページ 3 つ（MDN、英語のニュース記事、GitHub の README）で上の 1 行を確かめる（完成条件 1）
+- [x] 種類の違う英語のページ 3 つ（MDN、英語のニュース記事、GitHub の README）で上の 1 行を確かめる（完成条件 1）
 
-	メモ: 2026-10-18 に普段の Chrome で、MDN（`completion`）、GitHub の README（`scripted`）、x.com の投稿（`suppose`）で見出し語、意味、文、URL が出た。ニュース記事はまだ。claude.ai の Artifact では、本文が iframe の中にあるためダブルクリックが届かなかったので、コンテンツスクリプトを iframe にも入れ、URL はタブのものを使うようにした（verify の `iframe`）。
+	メモ: 2026-10-18 に普段の Chrome で、MDN（`completion`）、GitHub の README（`scripted`）、ニュース記事 2 つ（BBC の `delivered`、CNN の `according`）で、見出し語、意味、文、URL が出た。CNN の文は `4 p.m.` で切れずに 1 文で出た。x.com の投稿（`suppose`）でも出た。claude.ai の Artifact では、本文が iframe の中にあるためダブルクリックが届かなかったので、コンテンツスクリプトを iframe にも入れ、URL はタブのものを使うようにした（verify の `iframe`）。直した後、Artifact でも `subagents` とタブの URL が出た。
 
 ## T4. 保存と、登録済みの判定（1〜2 時間）
 
