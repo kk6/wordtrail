@@ -1,3 +1,4 @@
+import { extractSentence } from "./sentence.js";
 import { pickWord } from "./word.js";
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
@@ -8,5 +9,12 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 	if (!word) return;
 	// sidePanel.open() needs the user gesture, which is lost after the first await.
 	chrome.sidePanel.open({ tabId: sender.tab.id });
-	chrome.storage.session.set({ selection: { word, at: Date.now() } });
+	chrome.storage.session.set({
+		selection: {
+			word,
+			sentence: extractSentence(message.block, message.offset),
+			url: message.url,
+			at: Date.now(),
+		},
+	});
 });

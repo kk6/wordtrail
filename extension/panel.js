@@ -1,7 +1,10 @@
-const wordElement = document.getElementById("word");
+const fields = ["word", "sentence", "url"].map((id) =>
+	document.getElementById(id),
+);
 
 function show(selection) {
-	if (selection) wordElement.textContent = selection.word;
+	if (!selection) return;
+	for (const field of fields) field.textContent = selection[field.id];
 }
 
 chrome.storage.session
