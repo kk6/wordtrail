@@ -25,6 +25,7 @@ const chromePath =
 const fixtures = {
 	"/": readFileSync(path.join(here, "fixtures/article.html")),
 	"/frame": readFileSync(path.join(here, "fixtures/frame.html")),
+	"/other": readFileSync(path.join(here, "fixtures/other.html")),
 };
 
 function expectedExtensionId() {
@@ -86,6 +87,14 @@ async function startSession(evidenceDir) {
 			await wait(1200);
 		},
 		panelOpen: () => Boolean(panelTarget()),
+		// Moves the reading tab to another fixture page, e.g. "/other".
+		async goto(pathname) {
+			await page.goto(new URL(pathname, url).href);
+		},
+		async panelContexts() {
+			const panel = await panelTarget().asPage();
+			return panel.$$eval("#contexts li", (items) => items.length);
+		},
 		// The real entry is the toolbar icon, which puppeteer can't click, and a
 		// CDP userGesture doesn't count as a gesture for sidePanel.open(). So the
 		// panel page is opened in a tab instead.
@@ -250,6 +259,38 @@ const journeys = {
 				run.contexts[0].url === s.url,
 		);
 		await s.screenshot("save");
+	},
+	async registered(s, check) {
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
+		await s.clickInPanel("save");
+		await s.goto("/other");
+		await s.dblclick("#again");
+		check(
+			"別のページでは、登録済みと出る",
+			(await s.panelText("status")) === "登録済みの単語です。",
+		);
+		check(
+			"辞書を引き直さず、保存した意味が出る",
+			(await s.panelText("meanings")) === "adjective:\nどこにでもある",
+			await s.panelText("meanings"),
+		);
+		check(
+			"保存しなくても、文脈が 2 件になる",
+			(await s.panelContexts()) === 2 &&
+				(await s.savedWords()).ubiquitous?.contexts.length === 2,
+			await s.panelContexts(),
+		);
+		await s.dblclick("#again");
+		check(
+			"同じ文でもう一度ダブルクリックしても、3 件にならない",
+			(await s.panelContexts()) === 2 &&
+				(await s.savedWords()).ubiquitous?.contexts.length === 2,
+			await s.panelContexts(),
+		);
+		await s.screenshot("registered");
 	},
 	async iframe(s, check) {
 		await s.openPanel();

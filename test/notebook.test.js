@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { addContext, saveEntry } from "../extension/notebook.js";
+import { addContext, addEncounter, saveEntry } from "../extension/notebook.js";
 
 const entry = {
 	headword: "run",
@@ -81,4 +81,19 @@ test("登録済みの語は、意味を書き換え、文脈を足し、登録�
 			createdAt: entry.createdAt,
 		},
 	});
+});
+
+test("登録済みの語に出会うと、大文字と小文字を区別せずに文脈が足される", () => {
+	const words = addEncounter({ run: entry }, "Run", context);
+	assert.deepEqual(words.run.contexts, [...entry.contexts, context]);
+});
+
+test("登録済みの語に同じ文で出会っても、文脈は増えない", () => {
+	const once = addEncounter({ run: entry }, "run", context);
+	assert.deepEqual(addEncounter(once, "run", context), once);
+});
+
+test("未登録の語に出会っても、単語帳は変わらない", () => {
+	const words = { run: entry };
+	assert.equal(addEncounter(words, "running", context), words);
 });

@@ -23,3 +23,18 @@ export function saveEntry(words, { headword, meanings, context }) {
 		: { headword, meanings, contexts: [context], createdAt: context.addedAt };
 	return { ...words, [key]: entry };
 }
+
+/**
+ * The notebook after meeting the word again, or the same notebook when the
+ * word isn't registered. Contexts grow on the double-click itself, so each
+ * time the word stumped the reader is counted even without saving.
+ * @param {Record<string, { contexts: { sentence: string }[] }>} words
+ * @param {string} word
+ * @param {{ sentence: string, url: string, addedAt: string }} context
+ */
+export function addEncounter(words, word, context) {
+	const key = word.toLowerCase();
+	return words[key]
+		? { ...words, [key]: addContext(words[key], context) }
+		: words;
+}

@@ -8,8 +8,10 @@
 				font-family: system-ui, sans-serif;
 				margin: 16px;
 			}
-			label {
+			label,
+			h2 {
 				display: block;
+				font-weight: normal;
 				font-size: 0.8rem;
 				color: GrayText;
 				margin-top: 12px;
@@ -38,6 +40,10 @@
 		<label for="sentence">文脈</label>
 		<p id="sentence"></p>
 		<p id="url"></p>
+		<section id="history" hidden>
+			<h2>これまでの文脈</h2>
+			<ol id="contexts"></ol>
+		</section>
 		<button id="save" type="button" disabled>保存</button>
 		<span id="status" role="status"></span>
 		<script type="module" src="panel.js"></script>
