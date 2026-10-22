@@ -1,12 +1,12 @@
 # 意味を入れる
 
-単語をダブルクリックすると、パネルの新規登録の画面に、小文字にした見出し語と、英英辞書から引いた意味が出る。意味は品詞ごとに最初の 2 個まで。辞書から取れなかったとき（見つからない、通信の失敗、10 秒の時間切れ）は、意味の欄に手で入力するよう案内が出る。
+単語をダブルクリックすると、パネルの新規登録の画面に、小文字にした見出し語と、Wiktionary から引いた意味が出る。意味は品詞ごとに最初の 2 個まで。Wiktionary の欄は読むだけで、書き換えられない。取れなかったとき（見つからない、通信の失敗、10 秒の時間切れ）は、見つからなかったと出し、メモに書くよう案内する。
 
 ## Sub-features
 
 - `meanings-headword` は、見出し語を小文字で出す。
-- `meanings-lookup` は、辞書の意味を品詞ごとに 2 個まで出す。
-- `meanings-missing` は、辞書から取れなかったときに、手での入力を案内する。
+- `meanings-lookup` は、Wiktionary の意味を品詞ごとに 2 個まで出す。
+- `meanings-missing` は、取れなかったときに、見つからなかったと出し、メモに書くよう案内する。
 
 ## How to get to it (user POV)
 
@@ -22,9 +22,9 @@ Preconditions:
 - ジャーニーの最初に `openPanel` でパネルのページを開いておく。
 
 - **小文字の見出し語。** `#running`（`Running`）をダブルクリックする。`verify.mjs run meanings` で、`#word` が `running` になることを確かめる。
-- **品詞ごとの意味。** `#meanings` の最初の品詞が `verb`、その 1 個目が `present participle and gerund of run` になり、どの品詞も意味が 2 個以下になる。
+- **品詞ごとの意味。** `#meanings` の `textContent` が `verb:` と `present participle and gerund of run` の行で始まり、空行で区切ったどの品詞も意味が 2 行以下になる。
 - **文と URL。** `#sentence` が `Running is good exercise.`、`#url` が試験用ページの URL になる。
-- **辞書にない語。** `#qwzxvbn` をダブルクリックする。`#meanings` が空になり、その placeholder が `辞書から意味を取れません` で始まる。
+- **Wiktionary にない語。** `#qwzxvbn` をダブルクリックする。`#meanings` が `Wiktionary に見つかりませんでした` で始まり、`メモに書いて` を含み、`muted` の class が付く。
 - **証跡。** `meanings-page.png` と `meanings-panel.png` に、最後の状態が残る。
 
 ## Gotchas

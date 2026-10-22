@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import puppeteer from "puppeteer-core";
 import { importNotebook } from "../../../extension/backup.js";
-import { parseMeanings } from "../../../extension/meanings-text.js";
+import { formatMeanings } from "../../../extension/meanings-text.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
@@ -84,6 +84,19 @@ async function startSession(evidenceDir) {
 	return {
 		url,
 		extensionId,
+		// Setup only, for data in a shape the panel can no longer produce. Call it
+		// first in a journey: the worker started by the fresh install stops when
+		// idle and nothing here wakes it again.
+		async writeStorageFromWorker(items) {
+			const sw = await worker.worker();
+			// The worker target shows up before Chrome binds the extension APIs
+			// into it, so chrome can still be undefined for a moment.
+			for (let i = 0; i < 50; i++) {
+				if (await sw.evaluate(() => typeof chrome === "object")) break;
+				await wait(100);
+			}
+			await sw.evaluate((i) => chrome.storage.local.set(i), items);
+		},
 		// Same as removing the extension on chrome://extensions and loading the
 		// folder again; removing it deletes chrome.storage with it.
 		async reinstallExtension() {
@@ -227,20 +240,58 @@ async function startSession(evidenceDir) {
 					() => [],
 				);
 		},
-		async panelPlaceholder(id) {
+		// The ids of the editor's controls the reader can type into.
+		async panelEditables() {
 			const panel = await panelTarget().asPage();
-			return panel.$eval(`#${id}`, (e) => e.placeholder);
+			return panel.$$eval(
+				"#editor input, #editor textarea, #editor select, #editor [contenteditable]",
+				(controls) =>
+					controls.filter((c) => !c.disabled && !c.readOnly).map((c) => c.id),
+			);
 		},
-		// Replaces a field's text by typing, as the reader would.
-		async typeInPanel(id, text) {
+		// Replaces a field's text by typing, as the reader would. With leave:
+		// false the reader stays in the field and the panel stays in front,
+		// since sending the panel tab to the back would blur the field too.
+		async typeInPanel(id, text, { leave = true } = {}) {
 			const panel = await panelTarget().asPage();
 			await panel.bringToFront();
 			await panel.$eval(`#${id}`, (e) => e.select());
 			await panel.keyboard.type(text);
-			// Leaving the field fires change, as when the reader moves on.
+			if (leave) await this.leavePanelField();
+		},
+		// Tab out of the focused field, which fires change as when the reader
+		// moves on.
+		async leavePanelField() {
+			const panel = await panelTarget().asPage();
 			await panel.keyboard.press("Tab");
 			await wait(300);
 			await page.bringToFront();
+		},
+		// Clicks the element and types there, as a reader trying to write in it.
+		async clickAndTypeInPanel(selector, text) {
+			const panel = await panelTarget().asPage();
+			await panel.bringToFront();
+			await panel.click(selector);
+			await panel.keyboard.type(text);
+			await wait(300);
+			await page.bringToFront();
+		},
+		// The URLs the panel requests from Wiktionary from now on, kept growing.
+		async watchPanelRequests() {
+			const panel = await panelTarget().asPage();
+			const seen = [];
+			panel.on("request", (r) => {
+				if (r.url().startsWith("https://en.wiktionary.org/"))
+					seen.push(r.url());
+			});
+			return seen;
+		},
+		// Delays every response to the panel by latency ms; 0 turns it off.
+		async slowPanelNetwork(latency) {
+			const panel = await panelTarget().asPage();
+			await panel.emulateNetworkConditions(
+				latency ? { download: -1, upload: -1, latency } : null,
+			);
 		},
 		// dialog: true or false accepts or dismisses the confirm() it opens.
 		async clickInPanel(selector, { dialog } = {}) {
@@ -265,7 +316,9 @@ async function startSession(evidenceDir) {
 				`#words li[data-headword="${headword}"] details`,
 				(d) => ({
 					open: d.open,
+					labels: [...d.querySelectorAll(".tag")].map((t) => t.textContent),
 					meanings: d.querySelector(".meanings").innerText,
+					note: d.querySelector(".note")?.innerText ?? null,
 					contexts: [...d.querySelectorAll("ol li")].map((li) => li.innerText),
 				}),
 			);
@@ -277,17 +330,18 @@ async function startSession(evidenceDir) {
 				async () => (await chrome.storage.local.get("words")).words ?? {},
 			);
 		},
-		// Waits for the real dictionary, which the panel gives up on after 10s.
+		// The Wiktionary section once the lookup is over. Waits for the real
+		// dictionary, which the panel gives up on after 10s.
 		async panelMeanings() {
 			const panel = await panelTarget().asPage();
 			await panel.waitForFunction(
 				() =>
-					document.getElementById("meanings").placeholder !==
-					"辞書を引いています…",
+					document.getElementById("meanings").textContent !==
+					"Wiktionary を引いています…",
 				// The panel tab sits behind the page, where rAF-based polling never fires.
-				{ polling: 200, timeout: 12000 },
+				{ polling: 200, timeout: 15000 },
 			);
-			return parseMeanings(await panel.$eval("#meanings", (e) => e.value));
+			return panel.$eval("#meanings", (e) => e.textContent);
 		},
 		async screenshot(name) {
 			await page.screenshot({
@@ -355,13 +409,15 @@ const journeys = {
 		check("見出し語が小文字で出る", (await s.panelText("word")) === "running");
 		const meanings = await s.panelMeanings();
 		check(
-			"辞書の意味が品詞ごとに出る",
-			meanings[0]?.partOfSpeech === "verb" &&
-				meanings[0].definitions[0] === "present participle and gerund of run",
+			"Wiktionary の意味が品詞ごとに出る",
+			meanings.startsWith("verb:\npresent participle and gerund of run"),
+			meanings,
 		);
 		check(
 			"品詞ごとの意味は 2 個まで",
-			meanings.length > 0 && meanings.every((m) => m.definitions.length <= 2),
+			// Each group is its "verb:" line and the definitions under it.
+			meanings.split("\n\n").every((group) => group.split("\n").length <= 3),
+			meanings,
 		);
 		check(
 			"文と URL も出る",
@@ -369,12 +425,13 @@ const journeys = {
 				(await s.panelText("url")) === s.url,
 		);
 		await s.dblclick("#qwzxvbn");
+		const missing = await s.panelMeanings();
 		check(
-			"辞書にない語では、手での入力を案内する",
-			(await s.panelMeanings()).length === 0 &&
-				(await s.panelPlaceholder("meanings")).startsWith(
-					"辞書から意味を取れません",
-				),
+			"Wiktionary にない語では、見つからなかったと出し、メモに書くよう案内する",
+			missing.startsWith("Wiktionary に見つかりませんでした") &&
+				missing.includes("メモに書いて") &&
+				(await s.panelLook("#meanings")).classes.includes("muted"),
+			missing,
 		);
 		await s.screenshot("meanings");
 	},
@@ -383,19 +440,19 @@ const journeys = {
 		await s.dblclick("#running");
 		await s.panelMeanings();
 		await s.typeInPanel("word", "run");
-		await s.typeInPanel("meanings", "verb:\n走る\n\nnoun:\n走ること");
+		const shown = await s.panelMeanings();
+		await s.typeInPanel("note", "走る\n走ること");
 		await s.clickInPanel("#save");
 		check("保存したと出る", (await s.panelText("status")) === "保存しました。");
 		const { run } = await s.savedWords();
 		check("書き換えた見出し語で保存される", run?.headword === "run");
+		check("書いたメモが保存される", run?.note === "走る\n走ること", run?.note);
 		check(
-			"書き換えた意味で保存される",
-			// chrome.storage hands objects back with their keys reordered.
-			isDeepStrictEqual(run?.meanings, [
-				{ partOfSpeech: "verb", definitions: ["走る"] },
-				{ partOfSpeech: "noun", definitions: ["走ること"] },
-			]),
-			run?.meanings,
+			"Wiktionary の欄に出ていた、直した語の意味が保存される",
+			run?.meanings.length > 0 &&
+				formatMeanings(run.meanings) === shown &&
+				!shown.includes("present participle and gerund of run"),
+			{ shown, saved: run?.meanings },
 		);
 		check(
 			"文脈は文と URL の 1 件",
@@ -408,9 +465,10 @@ const journeys = {
 	async registered(s, check) {
 		await s.openPanel();
 		await s.dblclick("#ubiquitous");
-		await s.panelMeanings();
-		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
+		const meanings = await s.panelMeanings();
+		await s.typeInPanel("note", "どこにでもある");
 		await s.clickInPanel("#save");
+		const requests = await s.watchPanelRequests();
 		await s.goto("/other");
 		await s.dblclick("#again");
 		check(
@@ -418,9 +476,15 @@ const journeys = {
 			(await s.panelText("status")) === "登録済みの単語です。",
 		);
 		check(
-			"辞書を引き直さず、保存した意味が出る",
-			(await s.panelText("meanings")) === "adjective:\nどこにでもある",
-			await s.panelText("meanings"),
+			"Wiktionary を引き直さず、保存した意味とメモが出る",
+			requests.length === 0 &&
+				(await s.panelText("meanings")) === meanings &&
+				(await s.panelText("note")) === "どこにでもある",
+			{
+				requests,
+				meanings: await s.panelText("meanings"),
+				note: await s.panelText("note"),
+			},
 		);
 		check(
 			"保存しなくても、文脈が 2 件になる",
@@ -440,17 +504,23 @@ const journeys = {
 	async rename(s, check) {
 		await s.openPanel();
 		await s.dblclick("#ubiquitous");
-		await s.panelMeanings();
-		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
+		const meanings = await s.panelMeanings();
+		await s.typeInPanel("note", "どこにでもある");
 		await s.clickInPanel("#save");
+		const before = (await s.savedWords()).ubiquitous;
 		await s.dblclick("#deprecated");
 		await s.panelMeanings();
 		await s.typeInPanel("word", "ubiquitous");
 		check(
 			"見出し語を登録済みの語に変えると、その語の保存内容に切り替わる",
-			(await s.panelText("meanings")) === "adjective:\nどこにでもある" &&
+			(await s.panelText("meanings")) === meanings &&
+				(await s.panelText("note")) === "どこにでもある" &&
 				(await s.panelContexts()) === 1,
-			[await s.panelText("meanings"), await s.panelContexts()],
+			[
+				await s.panelText("meanings"),
+				await s.panelText("note"),
+				await s.panelContexts(),
+			],
 		);
 		check(
 			"切り替わったことが注意の色で出る",
@@ -461,10 +531,10 @@ const journeys = {
 		await s.clickInPanel("#save");
 		const { ubiquitous, deprecated } = await s.savedWords();
 		check(
-			"保存しても意味は上書きされず、今の文が文脈に足される",
-			isDeepStrictEqual(ubiquitous?.meanings, [
-				{ partOfSpeech: "adjective", definitions: ["どこにでもある"] },
-			]) &&
+			"保存しても意味とメモは上書きされず、今の文が文脈に足される",
+			// chrome.storage hands objects back with their keys reordered.
+			isDeepStrictEqual(ubiquitous?.meanings, before?.meanings) &&
+				ubiquitous.note === "どこにでもある" &&
 				ubiquitous.contexts.length === 2 &&
 				ubiquitous.contexts[1].sentence ===
 					"The U.S. team has deprecated the old API.",
@@ -489,9 +559,9 @@ const journeys = {
 			dialogs.seen,
 		);
 		await s.panelMeanings();
-		await s.typeInPanel("meanings", "冪等");
+		await s.typeInPanel("note", "冪等");
 		check(
-			"書き換えると、未保存と出る",
+			"メモを書くと、未保存と出る",
 			!(await s.panelLook("#unsaved")).hidden,
 		);
 		dialogs.accept = false;
@@ -504,8 +574,8 @@ const journeys = {
 		check(
 			"確認でキャンセルすると、書き換えた内容が残る",
 			(await s.panelText("word")) === "idempotent" &&
-				(await s.panelText("meanings")) === "冪等",
-			[await s.panelText("word"), await s.panelText("meanings")],
+				(await s.panelText("note")) === "冪等",
+			[await s.panelText("word"), await s.panelText("note")],
 		);
 		dialogs.accept = true;
 		await s.dblclick("#deprecated");
@@ -514,7 +584,7 @@ const journeys = {
 			dialogs.seen.length === 2 && (await s.panelText("word")) === "deprecated",
 		);
 		await s.panelMeanings();
-		await s.typeInPanel("meanings", "非推奨");
+		await s.typeInPanel("note", "非推奨");
 		await s.clickInPanel("#save");
 		check(
 			"保存すると、未保存の表示が消える",
@@ -531,17 +601,22 @@ const journeys = {
 	async persist(s, check) {
 		await s.openPanel();
 		await s.dblclick("#ubiquitous");
-		await s.panelMeanings();
-		await s.typeInPanel("meanings", "adjective:\nどこにでもある");
+		const meanings = await s.panelMeanings();
+		await s.typeInPanel("note", "どこにでもある");
 		await s.clickInPanel("#save");
 		const stillThere = async (label) => {
 			await s.openPanel();
 			await s.dblclick("#ubiquitous");
 			check(
-				`${label}も、登録済みと出て、保存した意味が出る`,
+				`${label}も、登録済みと出て、保存した意味とメモが出る`,
 				(await s.panelText("status")) === "登録済みの単語です。" &&
-					(await s.panelText("meanings")) === "adjective:\nどこにでもある",
-				[await s.panelText("status"), await s.panelText("meanings")],
+					(await s.panelText("meanings")) === meanings &&
+					(await s.panelText("note")) === "どこにでもある",
+				[
+					await s.panelText("status"),
+					await s.panelText("meanings"),
+					await s.panelText("note"),
+				],
 			);
 		};
 		await s.reloadExtension();
@@ -557,6 +632,7 @@ const journeys = {
 		for (const id of ["#ubiquitous", "#idempotent", "#deprecated"]) {
 			await s.dblclick(id);
 			await s.panelMeanings();
+			if (id === "#idempotent") await s.typeInPanel("note", "冪等");
 			await s.clickInPanel("#save");
 		}
 		await s.clickInPanel("#toggle-list");
@@ -572,9 +648,11 @@ const journeys = {
 		await s.clickInPanel('#words li[data-headword="idempotent"] summary');
 		const detail = await s.listDetail("idempotent");
 		check(
-			"単語をクリックすると、意味とこれまでの文脈が出る",
+			"単語をクリックすると、Wiktionary の意味、メモ、これまでの文脈が出る",
 			detail.open &&
+				isDeepStrictEqual(detail.labels, ["Wiktionary", "メモ"]) &&
 				detail.meanings.length > 0 &&
+				detail.note === "冪等" &&
 				detail.contexts.length === 1 &&
 				detail.contexts[0].startsWith(
 					"単語 The API is ubiquitous and idempotent.",
@@ -583,6 +661,11 @@ const journeys = {
 		);
 		const remove = '#words li[data-headword="ubiquitous"] .delete';
 		await s.clickInPanel('#words li[data-headword="ubiquitous"] summary');
+		check(
+			"メモのない単語には、メモの欄が出ない",
+			(await s.listDetail("ubiquitous")).note === null,
+			await s.listDetail("ubiquitous"),
+		);
 		await s.clickInPanel(remove, { dialog: false });
 		check(
 			"削除の確認でキャンセルすると、消えない",
@@ -603,6 +686,7 @@ const journeys = {
 		await s.openPanel();
 		await s.dblclick("#ubiquitous");
 		await s.panelMeanings();
+		await s.typeInPanel("note", "どこにでもある");
 		await s.clickInPanel("#save");
 		await s.dblclick("#idempotent");
 		await s.panelMeanings();
@@ -628,8 +712,9 @@ const journeys = {
 		);
 		const file = exported && path.join(downloads, exported);
 		check(
-			"書き出しで、全データが 1 つの JSON ファイルとしてダウンロードされる",
+			"書き出しで、メモを含む全データが版 2 の JSON ファイルとしてダウンロードされる",
 			Boolean(file) &&
+				JSON.parse(readFileSync(file, "utf8")).version === 2 &&
 				isDeepStrictEqual(
 					importNotebook(readFileSync(file, "utf8")).words,
 					before,
@@ -670,7 +755,217 @@ const journeys = {
 			(await s.listHeadwords()).length === 2,
 			await s.listHeadwords(),
 		);
+
+		const version1 = path.join(evidenceDir, "version-1.json");
+		writeFileSync(
+			version1,
+			JSON.stringify({
+				format: "wordtrail",
+				version: 1,
+				exportedAt: "2026-10-20T00:00:00Z",
+				words: [
+					{
+						headword: "ubiquitous",
+						meanings: [
+							{
+								partOfSpeech: "adjective",
+								definitions: ["Being everywhere at once."],
+							},
+							{ partOfSpeech: "", definitions: ["どこにでもある"] },
+						],
+						contexts: [
+							{
+								sentence: "Ubiquitous sensors now watch every street.",
+								url: "https://example.com/",
+								addedAt: "2026-10-20T00:00:00Z",
+							},
+						],
+						createdAt: "2026-10-20T00:00:00Z",
+					},
+				],
+			}),
+		);
+		await s.chooseFileInPanel("#import", version1, { dialog: true });
+		check(
+			"メモができる前の版 1 のファイルも読み込める",
+			isDeepStrictEqual(await s.listHeadwords(), ["ubiquitous"]),
+			[await s.panelText("list-status"), await s.listHeadwords()],
+		);
+		await s.dblclick("#again");
+		check(
+			"版 1 の品詞のない意味はメモに、品詞のある意味は Wiktionary の欄に出る",
+			(await s.panelText("note")) === "どこにでもある" &&
+				(await s.panelText("meanings")) ===
+					"adjective:\nBeing everywhere at once.",
+			[await s.panelText("note"), await s.panelText("meanings")],
+		);
 		await s.screenshot("backup");
+	},
+	async memo(s, check) {
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		const meanings = await s.panelMeanings();
+		check(
+			"編集画面で書ける欄は見出し語とメモだけで、Wiktionary の欄は書けない",
+			isDeepStrictEqual(await s.panelEditables(), ["word", "note"]),
+			await s.panelEditables(),
+		);
+		await s.clickAndTypeInPanel("#meanings", "xyz");
+		check(
+			"Wiktionary の欄をクリックして打っても、内容は変わらない",
+			meanings.length > 0 &&
+				(await s.panelText("meanings")) === meanings &&
+				(await s.panelLook("#unsaved")).hidden,
+			await s.panelText("meanings"),
+		);
+		const memo = "どこにでもある\n覚え方: ubi = どこでも";
+		await s.typeInPanel("note", memo);
+		check(
+			"メモを書くと、未保存と出る",
+			!(await s.panelLook("#unsaved")).hidden,
+		);
+		await s.clickInPanel("#save");
+		check(
+			"保存すると、メモが単語と一緒に入り、未保存の表示が消える",
+			(await s.savedWords()).ubiquitous?.note === memo &&
+				(await s.panelLook("#unsaved")).hidden,
+			(await s.savedWords()).ubiquitous,
+		);
+		await s.reloadExtension();
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		check(
+			"拡張を再読み込みした後も、登録済みの単語を開くとメモと Wiktionary の意味が出る",
+			(await s.panelText("note")) === memo &&
+				(await s.panelText("meanings")) === meanings,
+			[await s.panelText("note"), await s.panelText("meanings")],
+		);
+		await s.screenshot("memo-editor");
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel('#words li[data-headword="ubiquitous"] summary');
+		const detail = await s.listDetail("ubiquitous");
+		check(
+			"一覧では、Wiktionary とメモが別々のラベルで出る",
+			isDeepStrictEqual(detail.labels, ["Wiktionary", "メモ"]) &&
+				detail.meanings === meanings &&
+				detail.note === memo,
+			detail,
+		);
+		await s.screenshot("memo");
+	},
+	async relookup(s, check) {
+		await s.openPanel();
+		const requests = await s.watchPanelRequests();
+		await s.dblclick("#running");
+		const running = await s.panelMeanings();
+		check(
+			"準備: ダブルクリックした running を 1 回引く",
+			requests.length === 1 && requests[0].endsWith("/running"),
+			requests,
+		);
+		await s.typeInPanel("word", "run", { leave: false });
+		await wait(1500);
+		check(
+			"見出し語の入力の途中では、Wiktionary を引き直さない",
+			requests.length === 1 && (await s.panelText("meanings")) === running,
+			requests,
+		);
+		await s.leavePanelField();
+		const run = await s.panelMeanings();
+		check(
+			"見出し語の欄を離れると、直した語で Wiktionary を引き直して出す",
+			requests.length === 2 &&
+				requests[1].endsWith("/run") &&
+				run.includes("verb:") &&
+				!run.includes("present participle and gerund of run"),
+			{ requests, run },
+		);
+		check(
+			"引き直した結果は書き換えに数えず、見出し語を直したことだけで未保存と出る",
+			!(await s.panelLook("#unsaved")).hidden,
+		);
+		await s.slowPanelNetwork(3000);
+		await s.typeInPanel("word", "work");
+		check(
+			"準備: 遅い回線で、保存を押す時点ではまだ work を引いている",
+			(await s.panelText("meanings")) === "Wiktionary を引いています…",
+			await s.panelText("meanings"),
+		);
+		await s.clickInPanel("#save");
+		const work = await s.panelMeanings();
+		await s.slowPanelNetwork(0);
+		await wait(500);
+		const saved = (await s.savedWords()).work;
+		check(
+			"引き直しの途中で保存しても、直した語の意味で保存される",
+			(await s.panelText("status")) === "保存しました。" &&
+				saved?.meanings?.length > 0 &&
+				formatMeanings(saved.meanings) === work &&
+				work !== run,
+			{ status: await s.panelText("status"), work, saved },
+		);
+		check(
+			"元の語は登録されない",
+			!("run" in (await s.savedWords())) &&
+				!("running" in (await s.savedWords())),
+		);
+		await s.screenshot("relookup");
+	},
+	async migrate(s, check) {
+		const adjective = {
+			partOfSpeech: "adjective",
+			definitions: ["Being everywhere at once."],
+		};
+		await s.writeStorageFromWorker({
+			words: {
+				ubiquitous: {
+					headword: "ubiquitous",
+					meanings: [
+						adjective,
+						{
+							partOfSpeech: "",
+							definitions: ["どこにでもある", "覚え方: ubi = どこでも"],
+						},
+					],
+					contexts: [
+						{
+							sentence: "単語 The API is ubiquitous and idempotent.",
+							url: s.url,
+							addedAt: "2026-10-20T00:00:00Z",
+						},
+					],
+					createdAt: "2026-10-20T00:00:00Z",
+				},
+			},
+		});
+		await s.reloadExtension();
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		check(
+			"移した後も、登録済みの単語として出る",
+			(await s.panelText("status")) === "登録済みの単語です。",
+			await s.panelText("status"),
+		);
+		check(
+			"品詞のない意味は、メモに移る",
+			(await s.panelText("note")) === "どこにでもある\n覚え方: ubi = どこでも",
+			await s.panelText("note"),
+		);
+		check(
+			"品詞のある意味は、Wiktionary の欄に残る",
+			(await s.panelText("meanings")) ===
+				"adjective:\nBeing everywhere at once.",
+			await s.panelText("meanings"),
+		);
+		const { ubiquitous } = await s.savedWords();
+		check(
+			"保存の中身も移した後の形になり、文脈は残る",
+			isDeepStrictEqual(ubiquitous?.meanings, [adjective]) &&
+				ubiquitous.note === "どこにでもある\n覚え方: ubi = どこでも" &&
+				ubiquitous.contexts.length === 1,
+			ubiquitous,
+		);
+		await s.screenshot("migrate");
 	},
 	async speak(s, check) {
 		await s.openPanel();
