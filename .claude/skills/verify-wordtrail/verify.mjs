@@ -712,15 +712,28 @@ const journeys = {
 			await lastSpoken(),
 		);
 		await s.clickInPanel("#toggle-list");
-		await s.clickInPanel('#words li[data-headword="ubiquitous"] summary');
-		await s.clickInPanel(
-			'#words li[data-headword="ubiquitous"] li:last-child .speak',
+		const entry = '#words li[data-headword="ubiquitous"]';
+		await s.clickInPanel(`${entry} summary .speak`);
+		check(
+			"一覧の見出し語のボタンで見出し語を読み上げ、閉じた単語は閉じたまま",
+			(await lastSpoken())?.text === "ubiquitous" &&
+				!(await s.listDetail("ubiquitous")).open,
+			{ spoken: await lastSpoken(), detail: await s.listDetail("ubiquitous") },
 		);
+		await s.clickInPanel(`${entry} summary`);
+		await s.clickInPanel(`${entry} li:last-child .speak`);
 		check(
 			"一覧の文脈のボタンでも、その文を読み上げる",
 			(await lastSpoken())?.text ===
 				"Ubiquitous sensors now watch every street.",
 			await lastSpoken(),
+		);
+		await s.clickInPanel(`${entry} summary .speak`);
+		check(
+			"開いた単語で見出し語のボタンを押しても、開いたまま",
+			(await lastSpoken())?.text === "ubiquitous" &&
+				(await s.listDetail("ubiquitous")).open,
+			{ spoken: await lastSpoken(), detail: await s.listDetail("ubiquitous") },
 		);
 		await s.screenshot("speak");
 	},

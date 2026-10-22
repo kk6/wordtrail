@@ -158,16 +158,21 @@ function showHistory(saved) {
 
 function contextItem(context) {
 	const item = document.createElement("li");
-	const play = document.createElement("button");
-	play.type = "button";
-	play.className = "speak";
-	play.textContent = "▶";
-	play.ariaLabel = play.title = "文を読み上げる";
-	play.addEventListener("click", () => speak(context.sentence));
+	const play = speakButton("文を読み上げる", context.sentence);
 	const where = document.createElement("small");
 	where.append(contextLink(context.url));
 	item.append(context.sentence, " ", play, document.createElement("br"), where);
 	return item;
+}
+
+function speakButton(label, text) {
+	const play = document.createElement("button");
+	play.type = "button";
+	play.className = "speak";
+	play.textContent = "▶";
+	play.ariaLabel = play.title = label;
+	play.addEventListener("click", () => speak(text));
+	return play;
 }
 
 function speak(text) {
@@ -212,7 +217,13 @@ function entryItem(entry) {
 	item.dataset.headword = entry.headword;
 	const details = document.createElement("details");
 	const summary = document.createElement("summary");
-	summary.textContent = entry.headword;
+	// Chrome doesn't toggle the details for a click on a button in the summary,
+	// so the ▶ needs no preventDefault.
+	summary.append(
+		entry.headword,
+		" ",
+		speakButton("見出し語を読み上げる", entry.headword),
+	);
 	const text = document.createElement("p");
 	text.className = "meanings";
 	text.textContent = formatMeanings(entry.meanings);
