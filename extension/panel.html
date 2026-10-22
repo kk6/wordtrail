@@ -96,6 +96,7 @@
 			#word {
 				box-sizing: border-box;
 				width: 100%;
+				min-width: 0;
 				font: inherit;
 				font-size: 1.6rem;
 				font-weight: 500;
@@ -130,8 +131,19 @@
 				padding-left: 10px;
 				margin: 0 0 10px;
 			}
-			#sentence {
+			.quote p {
 				margin: 0;
+			}
+			.headword {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.speak {
+				font-size: 11px;
+				color: var(--muted);
+				padding: 0 6px;
+				vertical-align: middle;
 			}
 			#url,
 			.entry-contexts small {
@@ -197,7 +209,10 @@
 		<nav><button id="toggle-list" type="button">一覧</button></nav>
 		<main id="editor">
 			<label for="word" class="visually-hidden">見出し語</label>
-			<input id="word" placeholder="単語をダブルクリックしてください" />
+			<div class="headword">
+				<input id="word" placeholder="単語をダブルクリックしてください" />
+				<button id="speak-word" class="speak" type="button" aria-label="見出し語を読み上げる" title="見出し語を読み上げる">▶</button>
+			</div>
 			<div class="section">
 				<label for="meanings" class="tag">意味</label>
 				<span class="hint">「verb:」のような行が品詞、その下の行が意味</span>
@@ -206,7 +221,10 @@
 			<div class="section">
 				<span class="tag">文脈</span>
 				<div class="quote">
-					<p id="sentence"></p>
+					<p>
+						<span id="sentence"></span>
+						<button id="speak-sentence" class="speak" type="button" aria-label="文を読み上げる" title="文を読み上げる">▶</button>
+					</p>
 					<span id="url"></span>
 				</div>
 			</div>

@@ -22,6 +22,8 @@ const [
 	importButton,
 	importFile,
 	listStatus,
+	speakWord,
+	speakSentence,
 ] = [
 	"word",
 	"meanings",
@@ -41,6 +43,8 @@ const [
 	"import",
 	"import-file",
 	"list-status",
+	"speak-word",
+	"speak-sentence",
 ].map((id) => document.getElementById(id));
 let shown;
 // The key of the saved word on screen, or null while showing a new one.
@@ -154,11 +158,29 @@ function showHistory(saved) {
 
 function contextItem(context) {
 	const item = document.createElement("li");
+	const play = document.createElement("button");
+	play.type = "button";
+	play.className = "speak";
+	play.textContent = "▶";
+	play.ariaLabel = play.title = "文を読み上げる";
+	play.addEventListener("click", () => speak(context.sentence));
 	const where = document.createElement("small");
 	where.append(contextLink(context.url));
-	item.append(context.sentence, document.createElement("br"), where);
+	item.append(context.sentence, " ", play, document.createElement("br"), where);
 	return item;
 }
+
+function speak(text) {
+	if (!text) return;
+	// Otherwise a second click waits until the first sentence is read out.
+	speechSynthesis.cancel();
+	const utterance = new SpeechSynthesisUtterance(text);
+	utterance.lang = "en-US";
+	speechSynthesis.speak(utterance);
+}
+
+speakWord.addEventListener("click", () => speak(word.value.trim()));
+speakSentence.addEventListener("click", () => speak(sentence.textContent));
 
 function showEditor() {
 	list.hidden = true;
