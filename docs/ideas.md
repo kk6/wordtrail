@@ -18,8 +18,8 @@ v0.1 の対象外なので、v0.1 を出してから検討する。
 - 日本語訳の欄（空でもよい）。自動入力は ADR-0001 で対象外にしたので、手で入力する欄だけ。今は意味の欄に書き足せる。専用の欄にするなら、保存の形に `translation`（`null` 可）を足す
 	- `note` と `translation` を足すときは、書き出しのファイルの版を上げるか、版 1 のファイルも読めるようにする
 - 発音を確かめる
-	- 見出し語の横に読み上げボタン。ブラウザ内蔵の `speechSynthesis` で、通信も API キーも要らない
-	- 文脈の文も読み上げたい（2026-10-22 の試用のフィードバック）。参考: https://zenn.dev/kogawakaito/articles/listening_tool
+	- 済（2026-10-22）: 見出し語と文脈の文の横に読み上げボタン。ブラウザ内蔵の `speechSynthesis` で、通信も API キーも要らない
+	- 済（2026-10-22）: 文脈の文も読み上げる（2026-10-22 の試用のフィードバック）。これまでの文脈と一覧の文脈にも付けた。参考: https://zenn.dev/kogawakaito/articles/listening_tool
 	- Oxford Learner's Dictionaries の、その語のページへのリンク（`https://www.oxfordlearnersdictionaries.com/definition/english/<語>`）。音声と発音記号はそちらで確かめる
 - 関連する単語の結び付け（`goalkeeper` から `goal` へのリンクなど）。活用形の自動変換（v0.1 の対象外）と合わせて考える
 - 一覧から単語の編集画面に移る。今の編集画面は「今読んでいる文」を文脈に足す前提なので、一覧から開いたときは文脈を足さずに保存する形を足す。ADR-0001 では一覧を表示と削除だけにしている
