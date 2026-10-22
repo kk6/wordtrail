@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
 	addContext,
 	addEncounter,
+	migrateEntry,
 	newestFirst,
 	removeWord,
 	saveEntry,
@@ -58,31 +59,38 @@ const context = {
 	addedAt: "2026-10-20T08:00:00Z",
 };
 
-test("未登録の語は、文脈 1 件で新しく登録される", () => {
+test("未登録の語は、メモと文脈 1 件で新しく登録される", () => {
 	const words = saveEntry(
 		{},
-		{ headword: "running", meanings: entry.meanings, context },
+		{
+			headword: "running",
+			meanings: entry.meanings,
+			note: "走ること",
+			context,
+		},
 	);
 	assert.deepEqual(words, {
 		running: {
 			headword: "running",
 			meanings: entry.meanings,
+			note: "走ること",
 			contexts: [context],
 			createdAt: context.addedAt,
 		},
 	});
 });
 
-test("登録済みの語は、意味を書き換え、文脈を足し、登録日時を保つ", () => {
-	const meanings = [{ partOfSpeech: "verb", definitions: ["走る"] }];
+test("登録済みの語は、意味とメモを書き換え、文脈を足し、登録日時を保つ", () => {
+	const meanings = [{ partOfSpeech: "noun", definitions: ["A run."] }];
 	const words = saveEntry(
-		{ run: entry },
-		{ headword: "Run", meanings, context },
+		{ run: { ...entry, note: "前のメモ" } },
+		{ headword: "Run", meanings, note: "走る", context },
 	);
 	assert.deepEqual(words, {
 		run: {
 			headword: "Run",
 			meanings,
+			note: "走る",
 			contexts: [...entry.contexts, context],
 			createdAt: entry.createdAt,
 		},
@@ -130,4 +138,51 @@ test("削除すると、その単語だけが単語帳からなくなる", () =>
 	};
 	assert.deepEqual(removeWord(words, "Run"), { apple: words.apple });
 	assert.deepEqual(Object.keys(words), ["run", "apple"]);
+});
+
+const oldShape = (meanings) => ({ ...word("run", context.addedAt), meanings });
+
+test("品詞のない意味はメモに移り、品詞のある意味は残る", () => {
+	const verb = { partOfSpeech: "verb", definitions: ["To move swiftly."] };
+	assert.deepEqual(
+		migrateEntry(
+			oldShape([verb, { partOfSpeech: "", definitions: ["走る", "流れる"] }]),
+		),
+		{ ...oldShape([verb]), note: "走る\n流れる" },
+	);
+});
+
+test("品詞のない意味が複数あると、空行で区切ってメモに入る", () => {
+	assert.deepEqual(
+		migrateEntry(
+			oldShape([
+				{ partOfSpeech: "", definitions: ["走る"] },
+				{ partOfSpeech: "noun", definitions: ["A run."] },
+				{ partOfSpeech: "", definitions: ["覚え方: ラン", "ran, run"] },
+			]),
+		),
+		{
+			...oldShape([{ partOfSpeech: "noun", definitions: ["A run."] }]),
+			note: "走る\n\n覚え方: ラン\nran, run",
+		},
+	);
+});
+
+test("品詞のない意味がなければ、メモは空になる", () => {
+	assert.deepEqual(migrateEntry(oldShape(entry.meanings)), {
+		...oldShape(entry.meanings),
+		note: "",
+	});
+});
+
+test("メモを持つ語は、移した後の形なので変わらない", () => {
+	const migrated = {
+		...oldShape([{ partOfSpeech: "", definitions: ["手で書いた品詞なし"] }]),
+		note: "",
+	};
+	assert.equal(migrateEntry(migrated), migrated);
+	const once = migrateEntry(
+		oldShape([{ partOfSpeech: "", definitions: ["走る"] }]),
+	);
+	assert.equal(migrateEntry(once), once);
 });

@@ -1,8 +1,20 @@
-import { addEncounter } from "./notebook.js";
+import { addEncounter, migrateEntry } from "./notebook.js";
 import { extractSentence } from "./sentence.js";
 import { pickWord } from "./word.js";
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+
+// Reloading or updating the extension fires this too, so words saved before
+// the note existed get one the first time the new code runs.
+chrome.runtime.onInstalled.addListener(async () => {
+	const { words } = await chrome.storage.local.get("words");
+	if (!words) return;
+	const migrated = Object.fromEntries(
+		Object.entries(words).map(([key, entry]) => [key, migrateEntry(entry)]),
+	);
+	if (Object.keys(words).some((key) => migrated[key] !== words[key]))
+		await chrome.storage.local.set({ words: migrated });
+});
 
 chrome.runtime.onMessage.addListener((message, sender) => {
 	if (message.type !== "dblclick" || !sender.tab) return;

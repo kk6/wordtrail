@@ -11,17 +11,40 @@ export function addContext(entry, context) {
 
 /**
  * The notebook with the word saved under its lowercased headword. A word saved
- * before keeps its createdAt and gains the context; its meanings are replaced.
+ * before keeps its createdAt and gains the context; its meanings and note are
+ * replaced.
  * @param {Record<string, object>} words
- * @param {{ headword: string, meanings: object[], context: { sentence: string, url: string, addedAt: string } }} edit
+ * @param {{ headword: string, meanings: object[], note: string, context: { sentence: string, url: string, addedAt: string } }} edit
  */
-export function saveEntry(words, { headword, meanings, context }) {
+export function saveEntry(words, { headword, meanings, note, context }) {
 	const key = headword.toLowerCase();
 	const saved = words[key];
 	const entry = saved
-		? addContext({ ...saved, headword, meanings }, context)
-		: { headword, meanings, contexts: [context], createdAt: context.addedAt };
+		? addContext({ ...saved, headword, meanings, note }, context)
+		: {
+				headword,
+				meanings,
+				note,
+				contexts: [context],
+				createdAt: context.addedAt,
+			};
 	return { ...words, [key]: entry };
+}
+
+/**
+ * The word in the shape with a note, or the same word when it has one. Before
+ * the note existed, the reader's own words were meanings without a part of
+ * speech; Wiktionary always gives one, so those move to the note.
+ * @param {{ meanings: { partOfSpeech: string, definitions: string[] }[], note?: string }} entry
+ */
+export function migrateEntry(entry) {
+	if (typeof entry.note === "string") return entry;
+	const own = entry.meanings.filter(({ partOfSpeech }) => !partOfSpeech);
+	return {
+		...entry,
+		meanings: entry.meanings.filter(({ partOfSpeech }) => partOfSpeech),
+		note: own.map(({ definitions }) => definitions.join("\n")).join("\n\n"),
+	};
 }
 
 /**
