@@ -5,7 +5,7 @@
 ## Sub-features
 
 - `sentence-basic` は、単語を含む 1 文を出す。
-- `sentence-url` は、ページの URL を出す。
+- `sentence-url` は、ページの URL を、クリックで新しいタブに開けるリンクとして出す。
 - `sentence-nested` は、入れ子のインライン要素の中の語でも、ブロック全体から 1 文を切り出す。
 - `sentence-abbrev` は、`U.S.` のような略語と、ソースの改行をまたいで 1 文を保つ。
 
@@ -20,7 +20,7 @@ Preconditions:
 - `verify.mjs doctor` が `doctor: OK` を出す。
 - ジャーニーの最初に `openPanel` でパネルのページを開いておく（開き方は [単語を選ぶ](./select-word.md) の Gotchas を参照）。
 
-- **1 文と URL。** `#idempotent` をダブルクリックする。`verify.mjs run sentence` で、`#sentence` が `単語 The API is ubiquitous and idempotent.`、`#url` が試験用ページの URL になることを確かめる。
+- **1 文と URL。** `#idempotent` をダブルクリックする。`verify.mjs run sentence` で、`#sentence` が `単語 The API is ubiquitous and idempotent.`、`#url` が試験用ページの URL になり、その中のリンクの `href` も同じ URL になることを確かめる。
 - **入れ子と略語。** `#deprecated`（`<em>` の中の `<b>`）をダブルクリックする。`#sentence` が `The U.S. team has deprecated the old API.` になる。
 - **証跡。** `sentence-page.png` と `sentence-panel.png` に、最後の状態が残る。
 

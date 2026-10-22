@@ -9,6 +9,7 @@ const [
 	sentence,
 	url,
 	save,
+	unsaved,
 	status,
 	history,
 	contexts,
@@ -27,6 +28,7 @@ const [
 	"sentence",
 	"url",
 	"save",
+	"unsaved",
 	"status",
 	"history",
 	"contexts",
@@ -43,14 +45,52 @@ const [
 let shown;
 // The key of the saved word on screen, or null while showing a new one.
 let showingKey = null;
+// The fields as last shown or saved; anything else is an unsaved edit.
+let baseline = { word: "", meanings: "" };
+
+const edited = () =>
+	word.value !== baseline.word || meanings.value !== baseline.meanings;
+
+function markUnsaved() {
+	unsaved.hidden = !edited();
+}
+
+function markSaved() {
+	baseline = { word: word.value, meanings: meanings.value };
+	markUnsaved();
+}
+
+function setStatus(text, warning = false) {
+	status.textContent = text;
+	status.classList.toggle("warning", warning);
+}
+
+// Imported files can hold any URL, so only web pages become links.
+function contextLink(href) {
+	const link = document.createElement("a");
+	link.textContent = href;
+	if (/^https?:/.test(href)) link.href = href;
+	link.target = "_blank";
+	link.rel = "noreferrer";
+	return link;
+}
 
 async function show(selection) {
 	if (!selection) return;
+	// A double-click can't be undone, so ask before it replaces the edits.
+	if (
+		shown &&
+		edited() &&
+		!confirm(
+			`保存していない変更があります。変更を捨てて「${selection.word.toLowerCase()}」を表示しますか？`,
+		)
+	)
+		return;
 	shown = selection;
 	showEditor();
 	const headword = selection.word.toLowerCase();
 	sentence.textContent = selection.sentence;
-	url.textContent = selection.url;
+	url.replaceChildren(contextLink(selection.url));
 	save.disabled = false;
 	const { words: notebook = {} } = await chrome.storage.local.get("words");
 	if (shown !== selection) return;
@@ -62,26 +102,35 @@ async function show(selection) {
 	showingKey = null;
 	showHistory([]);
 	word.value = headword;
-	status.textContent = "";
+	setStatus("");
 	meanings.value = "";
 	meanings.placeholder = "辞書を引いています…";
+	markSaved();
 	const found = await lookUp(headword);
 	if (shown !== selection) return;
 	meanings.placeholder = found.length
 		? ""
 		: "辞書から意味を取れませんでした。意味は手で入力してください。";
 	// Keep whatever the reader already typed while the lookup was running.
-	if (!meanings.value) meanings.value = formatMeanings(found);
+	if (!meanings.value) {
+		meanings.value = formatMeanings(found);
+		baseline.meanings = meanings.value;
+	}
+	markUnsaved();
 }
 
-function showSaved(saved, note) {
+function showSaved(saved, note, warning) {
 	showingKey = saved.headword.toLowerCase();
 	word.value = saved.headword;
 	meanings.value = formatMeanings(saved.meanings);
 	meanings.placeholder = "";
 	showHistory(saved.contexts);
-	status.textContent = note;
+	setStatus(note, warning);
+	markSaved();
 }
+
+word.addEventListener("input", markUnsaved);
+meanings.addEventListener("input", markUnsaved);
 
 // Saving under another saved word's headword would overwrite its meanings, so
 // show that word instead and let the save add this sentence to it.
@@ -94,6 +143,7 @@ word.addEventListener("change", async () => {
 		showSaved(
 			saved,
 			`登録済みの「${saved.headword}」を表示しています。保存すると、今の文を「${saved.headword}」の文脈に足します。`,
+			true,
 		);
 });
 
@@ -105,7 +155,7 @@ function showHistory(saved) {
 function contextItem(context) {
 	const item = document.createElement("li");
 	const where = document.createElement("small");
-	where.textContent = context.url;
+	where.append(contextLink(context.url));
 	item.append(context.sentence, document.createElement("br"), where);
 	return item;
 }
@@ -203,7 +253,7 @@ toggleList.addEventListener("click", () =>
 save.addEventListener("click", async () => {
 	const headword = word.value.trim();
 	if (!headword) {
-		status.textContent = "見出し語を入力してください。";
+		setStatus("見出し語を入力してください。");
 		return;
 	}
 	const { words: notebook = {} } = await chrome.storage.local.get("words");
@@ -217,8 +267,9 @@ save.addEventListener("click", async () => {
 		},
 	});
 	await chrome.storage.local.set({ words: updated });
-	status.textContent = "保存しました。";
+	setStatus("保存しました。");
 	showHistory(updated[headword.toLowerCase()].contexts);
+	markSaved();
 });
 
 chrome.storage.session

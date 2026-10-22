@@ -15,6 +15,7 @@
 				--accent-strong: #0f6e56;
 				--tag-bg: #e1f5ee;
 				--tag-text: #085041;
+				--warning: #b42318;
 			}
 			@media (prefers-color-scheme: dark) {
 				:root {
@@ -27,6 +28,7 @@
 					--accent-strong: #9fe1cb;
 					--tag-bg: #085041;
 					--tag-text: #9fe1cb;
+					--warning: #f97066;
 				}
 			}
 			body {
@@ -138,6 +140,13 @@
 				font-size: 11px;
 				overflow-wrap: anywhere;
 			}
+			a {
+				color: inherit;
+			}
+			#status.warning,
+			#unsaved {
+				color: var(--warning);
+			}
 			.entry-contexts {
 				list-style: none;
 				padding: 0;
@@ -207,6 +216,7 @@
 			</section>
 			<div class="actions">
 				<button id="save" type="button" disabled>保存</button>
+				<span id="unsaved" hidden>未保存</span>
 				<span id="status" role="status"></span>
 			</div>
 		</main>

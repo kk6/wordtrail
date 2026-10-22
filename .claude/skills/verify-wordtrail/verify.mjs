@@ -165,6 +165,26 @@ async function startSession(evidenceDir) {
 			// Inputs hold their text in value; other elements in textContent.
 			return panel.$eval(`#${id}`, (e) => e.value ?? e.textContent);
 		},
+		// Whether a panel element is shown, has a class, and where it links to.
+		async panelLook(selector) {
+			const panel = await panelTarget().asPage();
+			return panel.$eval(selector, (e) => ({
+				hidden: e.hidden,
+				classes: [...e.classList],
+				href: e.getAttribute("href"),
+			}));
+		},
+		// Records the panel's confirm() messages and answers them with
+		// watcher.accept, which a journey can flip between double-clicks.
+		async watchPanelDialogs() {
+			const panel = await panelTarget().asPage();
+			const watcher = { accept: true, seen: [] };
+			panel.on("dialog", (d) => {
+				watcher.seen.push(d.message());
+				watcher.accept ? d.accept() : d.dismiss();
+			});
+			return watcher;
+		},
 		async panelPlaceholder(id) {
 			const panel = await panelTarget().asPage();
 			return panel.$eval(`#${id}`, (e) => e.placeholder);
@@ -274,6 +294,11 @@ const journeys = {
 				"単語 The API is ubiquitous and idempotent.",
 		);
 		check("ページの URL が出る", (await s.panelText("url")) === s.url);
+		check(
+			"URL はクリックで開けるリンクになっている",
+			(await s.panelLook("#url a")).href === s.url,
+			await s.panelLook("#url a"),
+		);
 		await s.dblclick("#deprecated");
 		check(
 			"入れ子のインライン要素の語でも、改行と U.S. をまたいで 1 文が出る",
@@ -386,9 +411,10 @@ const journeys = {
 			[await s.panelText("meanings"), await s.panelContexts()],
 		);
 		check(
-			"切り替わったことが出る",
-			(await s.panelText("status")).includes("登録済みの「ubiquitous」"),
-			await s.panelText("status"),
+			"切り替わったことが注意の色で出る",
+			(await s.panelText("status")).includes("登録済みの「ubiquitous」") &&
+				(await s.panelLook("#status")).classes.includes("warning"),
+			[await s.panelText("status"), await s.panelLook("#status")],
 		);
 		await s.clickInPanel("#save");
 		const { ubiquitous, deprecated } = await s.savedWords();
@@ -404,6 +430,61 @@ const journeys = {
 		);
 		check("元の語は登録されない", deprecated === undefined);
 		await s.screenshot("rename");
+	},
+	async unsaved(s, check) {
+		await s.openPanel();
+		const dialogs = await s.watchPanelDialogs();
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		check(
+			"新規の語を書き換えていなければ、未保存と出ない",
+			(await s.panelLook("#unsaved")).hidden,
+		);
+		await s.dblclick("#idempotent");
+		check(
+			"書き換えていない新規の語からは、確認なしで切り替わる",
+			dialogs.seen.length === 0 && (await s.panelText("word")) === "idempotent",
+			dialogs.seen,
+		);
+		await s.panelMeanings();
+		await s.typeInPanel("meanings", "冪等");
+		check(
+			"書き換えると、未保存と出る",
+			!(await s.panelLook("#unsaved")).hidden,
+		);
+		dialogs.accept = false;
+		await s.dblclick("#deprecated");
+		check(
+			"書き換え中に別の語をダブルクリックすると、確認が出る",
+			dialogs.seen.length === 1,
+			dialogs.seen,
+		);
+		check(
+			"確認でキャンセルすると、書き換えた内容が残る",
+			(await s.panelText("word")) === "idempotent" &&
+				(await s.panelText("meanings")) === "冪等",
+			[await s.panelText("word"), await s.panelText("meanings")],
+		);
+		dialogs.accept = true;
+		await s.dblclick("#deprecated");
+		check(
+			"確認で承認すると、その語に切り替わる",
+			dialogs.seen.length === 2 && (await s.panelText("word")) === "deprecated",
+		);
+		await s.panelMeanings();
+		await s.typeInPanel("meanings", "非推奨");
+		await s.clickInPanel("#save");
+		check(
+			"保存すると、未保存の表示が消える",
+			(await s.panelLook("#unsaved")).hidden,
+		);
+		await s.dblclick("#ubiquitous");
+		check(
+			"保存した後は、確認なしで切り替わる",
+			dialogs.seen.length === 2 && (await s.panelText("word")) === "ubiquitous",
+			dialogs.seen,
+		);
+		await s.screenshot("unsaved");
 	},
 	async persist(s, check) {
 		await s.openPanel();
