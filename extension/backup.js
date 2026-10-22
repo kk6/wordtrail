@@ -1,7 +1,9 @@
-import { newestFirst } from "./notebook.js";
+import { migrateEntry, newestFirst } from "./notebook.js";
 
 const FORMAT = "wordtrail";
-const VERSION = 1;
+// Version 1 files come from before the note: they are read in the old shape
+// and migrated the same way as the stored words.
+const VERSION = 2;
 
 /**
  * The whole notebook as the text of one JSON file.
@@ -32,18 +34,18 @@ export function importNotebook(text) {
 	}
 	if (file?.format !== FORMAT)
 		return { error: "Wordtrail から書き出したファイルではありません。" };
-	if (file.version !== VERSION)
+	if (file.version !== VERSION && file.version !== 1)
 		return { error: `対応していない版です（${file.version}）。` };
 	if (!Array.isArray(file.words))
 		return { error: "単語の一覧が入っていません。" };
 	const words = {};
 	for (const [index, entry] of file.words.entries()) {
-		if (!isEntry(entry))
+		if (!isEntry(entry) || (file.version === VERSION && !isText(entry.note)))
 			return { error: `${index + 1} 語目の形が正しくありません。` };
 		const key = entry.headword.toLowerCase();
 		if (words[key])
 			return { error: `「${entry.headword}」が 2 回入っています。` };
-		words[key] = entry;
+		words[key] = file.version === 1 ? migrateEntry(entry) : entry;
 	}
 	return { words };
 }
