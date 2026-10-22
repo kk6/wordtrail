@@ -185,6 +185,38 @@ async function startSession(evidenceDir) {
 			});
 			return watcher;
 		},
+		// Records what the panel hands to speechSynthesis.speak() and whether
+		// Chrome starts reading it, then lets the real call through.
+		async watchPanelSpeech() {
+			const panel = await panelTarget().asPage();
+			await panel.evaluate(() => {
+				window.spoken = [];
+				const speak = speechSynthesis.speak.bind(speechSynthesis);
+				speechSynthesis.speak = (utterance) => {
+					const said = { text: utterance.text, lang: utterance.lang };
+					utterance.addEventListener("start", () => {
+						said.started = true;
+					});
+					window.spoken.push(said);
+					speak(utterance);
+				};
+			});
+			return async () => panel.evaluate(() => window.spoken.at(-1));
+		},
+		// Voices load after the page does, so wait for an English one to show up.
+		async panelHasEnglishVoice() {
+			const panel = await panelTarget().asPage();
+			return panel
+				.waitForFunction(
+					() =>
+						speechSynthesis.getVoices().some((v) => v.lang.startsWith("en")),
+					{ polling: 200, timeout: 5000 },
+				)
+				.then(
+					() => true,
+					() => false,
+				);
+		},
 		async panelPlaceholder(id) {
 			const panel = await panelTarget().asPage();
 			return panel.$eval(`#${id}`, (e) => e.placeholder);
@@ -629,6 +661,49 @@ const journeys = {
 			await s.listHeadwords(),
 		);
 		await s.screenshot("backup");
+	},
+	async speak(s, check) {
+		await s.openPanel();
+		const lastSpoken = await s.watchPanelSpeech();
+		check("英語の声がある", await s.panelHasEnglishVoice());
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		await s.clickInPanel("#speak-word");
+		const word = await lastSpoken();
+		check(
+			"見出し語のボタンで、見出し語を英語として読み上げる",
+			word?.text === "ubiquitous" && word.lang === "en-US",
+			word,
+		);
+		check("読み上げが始まる", word?.started === true, word);
+		const first = "単語 The API is ubiquitous and idempotent.";
+		await s.clickInPanel("#speak-sentence");
+		check(
+			"文脈のボタンで、表示中の文を読み上げる",
+			(await lastSpoken())?.text === first,
+			await lastSpoken(),
+		);
+		await s.clickInPanel("#save");
+		await s.goto("/other");
+		await s.dblclick("#again");
+		await s.clickInPanel("#contexts li:first-child .speak");
+		check(
+			"これまでの文脈のボタンで、前に出会った文を読み上げる",
+			(await lastSpoken())?.text === first,
+			await lastSpoken(),
+		);
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel('#words li[data-headword="ubiquitous"] summary');
+		await s.clickInPanel(
+			'#words li[data-headword="ubiquitous"] li:last-child .speak',
+		);
+		check(
+			"一覧の文脈のボタンでも、その文を読み上げる",
+			(await lastSpoken())?.text ===
+				"Ubiquitous sensors now watch every street.",
+			await lastSpoken(),
+		);
+		await s.screenshot("speak");
 	},
 	async iframe(s, check) {
 		await s.openPanel();
