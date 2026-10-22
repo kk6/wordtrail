@@ -176,6 +176,11 @@ function speak(text) {
 	speechSynthesis.cancel();
 	const utterance = new SpeechSynthesisUtterance(text);
 	utterance.lang = "en-US";
+	// lang alone makes Chrome on macOS read in Albert, a novelty voice.
+	const samantha = speechSynthesis
+		.getVoices()
+		.find((v) => v.name === "Samantha");
+	if (samantha) utterance.voice = samantha;
 	speechSynthesis.speak(utterance);
 }
 

@@ -193,7 +193,11 @@ async function startSession(evidenceDir) {
 				window.spoken = [];
 				const speak = speechSynthesis.speak.bind(speechSynthesis);
 				speechSynthesis.speak = (utterance) => {
-					const said = { text: utterance.text, lang: utterance.lang };
+					const said = {
+						text: utterance.text,
+						lang: utterance.lang,
+						voice: utterance.voice?.name,
+					};
 					utterance.addEventListener("start", () => {
 						said.started = true;
 					});
@@ -204,17 +208,23 @@ async function startSession(evidenceDir) {
 			return async () => panel.evaluate(() => window.spoken.at(-1));
 		},
 		// Voices load after the page does, so wait for an English one to show up.
-		async panelHasEnglishVoice() {
+		// Returns the names of the English voices, or [] if none arrive.
+		async panelEnglishVoices() {
 			const panel = await panelTarget().asPage();
 			return panel
 				.waitForFunction(
-					() =>
-						speechSynthesis.getVoices().some((v) => v.lang.startsWith("en")),
+					() => {
+						const names = speechSynthesis
+							.getVoices()
+							.filter((v) => v.lang.startsWith("en"))
+							.map((v) => v.name);
+						return names.length > 0 && names;
+					},
 					{ polling: 200, timeout: 5000 },
 				)
 				.then(
-					() => true,
-					() => false,
+					(handle) => handle.jsonValue(),
+					() => [],
 				);
 		},
 		async panelPlaceholder(id) {
@@ -665,16 +675,25 @@ const journeys = {
 	async speak(s, check) {
 		await s.openPanel();
 		const lastSpoken = await s.watchPanelSpeech();
-		check("英語の声がある", await s.panelHasEnglishVoice());
 		await s.dblclick("#ubiquitous");
 		await s.panelMeanings();
+		// Voices are listed only after the click, so the first click finds them
+		// on its own, as it does for the reader.
 		await s.clickInPanel("#speak-word");
 		const word = await lastSpoken();
+		const voices = await s.panelEnglishVoices();
+		check("英語の声がある", voices.length > 0, voices);
 		check(
 			"見出し語のボタンで、見出し語を英語として読み上げる",
 			word?.text === "ubiquitous" && word.lang === "en-US",
 			word,
 		);
+		if (voices.includes("Samantha"))
+			check(
+				"Samantha があれば、最初のクリックから Samantha で読む",
+				word?.voice === "Samantha",
+				word,
+			);
 		check("読み上げが始まる", word?.started === true, word);
 		const first = "単語 The API is ubiquitous and idempotent.";
 		await s.clickInPanel("#speak-sentence");
