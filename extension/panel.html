@@ -81,11 +81,6 @@
 				border-radius: 6px;
 				margin: 0 0 6px;
 			}
-			.hint {
-				font-size: 11px;
-				color: var(--muted);
-				margin-left: 6px;
-			}
 			.visually-hidden {
 				position: absolute;
 				width: 1px;
@@ -196,9 +191,13 @@
 				color: var(--accent-strong);
 				margin-bottom: 6px;
 			}
-			.meanings {
+			.meanings,
+			.note {
 				white-space: pre-line;
 				margin: 0 0 8px;
+			}
+			.muted {
+				color: var(--muted);
 			}
 			#empty {
 				color: var(--muted);
@@ -214,9 +213,12 @@
 				<button id="speak-word" class="speak" type="button" aria-label="見出し語を読み上げる" title="見出し語を読み上げる">▶</button>
 			</div>
 			<div class="section">
-				<label for="meanings" class="tag">意味</label>
-				<span class="hint">「verb:」のような行が品詞、その下の行が意味</span>
-				<textarea id="meanings" rows="8"></textarea>
+				<span class="tag">Wiktionary</span>
+				<p id="meanings" class="meanings" aria-live="polite"></p>
+			</div>
+			<div class="section">
+				<label for="note" class="tag">メモ</label>
+				<textarea id="note" rows="4" placeholder="訳、覚え方、気づいたことなど"></textarea>
 			</div>
 			<div class="section">
 				<span class="tag">文脈</span>

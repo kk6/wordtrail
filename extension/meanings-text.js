@@ -1,6 +1,5 @@
-// Meanings are edited as plain text: "verb:" starts a part of speech and the
-// lines under it are its definitions. One textarea beats a form per definition
-// for typing a meaning by hand when the dictionary has none.
+// Meanings are shown as plain text with pre-line: "verb:" heads a part of
+// speech and the lines under it are its definitions.
 
 /** @param {{ partOfSpeech: string, definitions: string[] }[]} meanings */
 export function formatMeanings(meanings) {

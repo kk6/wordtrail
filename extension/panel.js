@@ -1,11 +1,12 @@
 import { exportNotebook, importNotebook } from "./backup.js";
 import { lookUp } from "./dictionary.js";
-import { formatMeanings, parseMeanings } from "./meanings-text.js";
+import { formatMeanings } from "./meanings-text.js";
 import { newestFirst, removeWord, saveEntry } from "./notebook.js";
 
 const [
 	word,
 	meanings,
+	note,
 	sentence,
 	url,
 	save,
@@ -27,6 +28,7 @@ const [
 ] = [
 	"word",
 	"meanings",
+	"note",
 	"sentence",
 	"url",
 	"save",
@@ -47,20 +49,24 @@ const [
 	"speak-sentence",
 ].map((id) => document.getElementById(id));
 let shown;
-// The key of the saved word on screen, or null while showing a new one.
-let showingKey = null;
+// What the Wiktionary section shows: the meanings for key, null while they are
+// looked up, and ready once they are in.
+let dictionary = { key: "", meanings: [], ready: Promise.resolve() };
+// The latest run of the headword's change handler. Clicking 保存 right after
+// editing the headword fires change first, so the save waits for it.
+let switching = Promise.resolve();
 // The fields as last shown or saved; anything else is an unsaved edit.
-let baseline = { word: "", meanings: "" };
+let baseline = { word: "", note: "" };
 
 const edited = () =>
-	word.value !== baseline.word || meanings.value !== baseline.meanings;
+	word.value !== baseline.word || note.value !== baseline.note;
 
 function markUnsaved() {
 	unsaved.hidden = !edited();
 }
 
 function markSaved() {
-	baseline = { word: word.value, meanings: meanings.value };
+	baseline = { word: word.value, note: note.value };
 	markUnsaved();
 }
 
@@ -103,53 +109,76 @@ async function show(selection) {
 		showSaved(saved, "登録済みの単語です。");
 		return;
 	}
-	showingKey = null;
 	showHistory([]);
 	word.value = headword;
+	note.value = "";
 	setStatus("");
-	meanings.value = "";
-	meanings.placeholder = "辞書を引いています…";
 	markSaved();
-	const found = await lookUp(headword);
-	if (shown !== selection) return;
-	meanings.placeholder = found.length
-		? ""
-		: "辞書から意味を取れませんでした。意味は手で入力してください。";
-	// Keep whatever the reader already typed while the lookup was running.
-	if (!meanings.value) {
-		meanings.value = formatMeanings(found);
-		baseline.meanings = meanings.value;
-	}
-	markUnsaved();
+	lookUpMeanings(headword);
 }
 
-function showSaved(saved, note, warning) {
-	showingKey = saved.headword.toLowerCase();
+function showSaved(saved, status, warning) {
 	word.value = saved.headword;
-	meanings.value = formatMeanings(saved.meanings);
-	meanings.placeholder = "";
+	note.value = saved.note;
+	showMeanings({
+		key: saved.headword.toLowerCase(),
+		meanings: saved.meanings,
+		ready: Promise.resolve(),
+	});
 	showHistory(saved.contexts);
-	setStatus(note, warning);
+	setStatus(status, warning);
 	markSaved();
+}
+
+function lookUpMeanings(key) {
+	const looking = { key, meanings: null };
+	looking.ready = lookUp(key).then((found) => {
+		looking.meanings = found;
+		if (dictionary === looking) showMeanings(looking);
+	});
+	showMeanings(looking);
+}
+
+function showMeanings(next) {
+	dictionary = next;
+	const found = next.meanings;
+	meanings.textContent = !found
+		? "Wiktionary を引いています…"
+		: found.length
+			? formatMeanings(found)
+			: "Wiktionary に見つかりませんでした。調べたことや自分の言葉は、メモに書いてください。";
+	meanings.classList.toggle("muted", !found?.length);
 }
 
 word.addEventListener("input", markUnsaved);
-meanings.addEventListener("input", markUnsaved);
+note.addEventListener("input", markUnsaved);
 
-// Saving under another saved word's headword would overwrite its meanings, so
-// show that word instead and let the save add this sentence to it.
-word.addEventListener("change", async () => {
+// Only once the reader leaves the field, so a half-typed word is never looked up.
+word.addEventListener("change", () => {
+	switching = switchHeadword();
+});
+
+async function switchHeadword() {
+	const selection = shown;
 	const key = word.value.trim().toLowerCase();
-	if (!key || key === showingKey) return;
+	if (!key || key === dictionary.key) return;
 	const { words: notebook = {} } = await chrome.storage.local.get("words");
+	if (shown !== selection) return;
 	const saved = notebook[key];
-	if (saved)
+	// Saving under another saved word's headword would overwrite its meanings,
+	// so show that word instead and let the save add this sentence to it.
+	if (saved) {
 		showSaved(
 			saved,
 			`登録済みの「${saved.headword}」を表示しています。保存すると、今の文を「${saved.headword}」の文脈に足します。`,
 			true,
 		);
-});
+		return;
+	}
+	showHistory([]);
+	setStatus("");
+	lookUpMeanings(key);
+}
 
 function showHistory(saved) {
 	history.hidden = !saved.length;
@@ -224,9 +253,16 @@ function entryItem(entry) {
 		" ",
 		speakButton("見出し語を読み上げる", entry.headword),
 	);
-	const text = document.createElement("p");
-	text.className = "meanings";
-	text.textContent = formatMeanings(entry.meanings);
+	const parts = [
+		labelled(
+			"Wiktionary",
+			entry.meanings.length
+				? formatMeanings(entry.meanings)
+				: "Wiktionary に見つかりませんでした。",
+			entry.meanings.length ? "meanings" : "meanings muted",
+		),
+	];
+	if (entry.note) parts.push(labelled("メモ", entry.note, "note"));
 	const seen = document.createElement("ol");
 	seen.className = "entry-contexts";
 	seen.append(...entry.contexts.map(contextItem));
@@ -242,9 +278,21 @@ function entryItem(entry) {
 			words: removeWord(notebook, entry.headword),
 		});
 	});
-	details.append(summary, text, seen, remove);
+	details.append(summary, ...parts, seen, remove);
 	item.append(details);
 	return item;
+}
+
+function labelled(label, text, className) {
+	const tag = document.createElement("span");
+	tag.className = "tag";
+	tag.textContent = label;
+	const body = document.createElement("p");
+	body.className = className;
+	body.textContent = text;
+	const part = document.createElement("div");
+	part.append(tag, body);
+	return part;
 }
 
 exportButton.addEventListener("click", async () => {
@@ -289,18 +337,25 @@ toggleList.addEventListener("click", () =>
 );
 
 save.addEventListener("click", async () => {
+	const selection = shown;
 	const headword = word.value.trim();
 	if (!headword) {
 		setStatus("見出し語を入力してください。");
 		return;
 	}
+	await switching;
+	await dictionary.ready;
+	// Another word took the screen while waiting, so the meanings on hand
+	// belong to it, not to this headword.
+	if (shown !== selection || dictionary.key !== headword.toLowerCase()) return;
 	const { words: notebook = {} } = await chrome.storage.local.get("words");
 	const updated = saveEntry(notebook, {
 		headword,
-		meanings: parseMeanings(meanings.value),
+		meanings: dictionary.meanings,
+		note: note.value,
 		context: {
-			sentence: shown.sentence,
-			url: shown.url,
+			sentence: selection.sentence,
+			url: selection.url,
 			addedAt: new Date().toISOString(),
 		},
 	});
