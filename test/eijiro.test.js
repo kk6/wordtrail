@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseLine, readEntries, toRecords } from "../extension/eijiro.js";
+import {
+	formatTranslations,
+	parseLine,
+	readEntries,
+	toRecords,
+} from "../extension/eijiro.js";
 
 // Hand-written in Eijiro's format; the real data must never be committed.
 const sample = readFileSync(
@@ -105,4 +110,48 @@ test("取り込む行を、小文字の見出し語ごとに 1 件にまとめ�
 		{ key: "us", entries: SAMPLE_ENTRIES.slice(4, 6) },
 		{ key: "don't", entries: [SAMPLE_ENTRIES[6]] },
 	]);
+});
+
+const entry = (headword, partOfSpeech, translation) => ({
+	headword,
+	partOfSpeech,
+	translation,
+});
+
+test("訳は品詞ごとにまとめ、品詞の番号を外して、番号付きで並べる", () => {
+	assert.equal(
+		formatTranslations("run", [
+			entry("run", "自動-1", "走る"),
+			entry("run", "自動-2", "逃げる"),
+			entry("run", "他動-1", "営む"),
+		]),
+		"自動:\n1. 走る\n2. 逃げる\n\n他動:\n1. 営む",
+	);
+});
+
+test("同じ綴りの別の語の番号（1-動）も外す", () => {
+	assert.equal(
+		formatTranslations("ran", [
+			entry("ran", "1-動", "runの過去形"),
+			entry("ran", "2-名", "より糸の一束"),
+		]),
+		"動:\n1. runの過去形\n\n名:\n1. より糸の一束",
+	);
+});
+
+test("品詞のない訳は、見出しを付けずに並べる", () => {
+	assert.equal(
+		formatTranslations("sample-word", [entry("sample-word", null, "見本の語")]),
+		"1. 見本の語",
+	);
+});
+
+test("引いた語と綴りが違う見出し語には、元の綴りを添える", () => {
+	assert.equal(
+		formatTranslations("us", [
+			entry("US", "略", "合衆国"),
+			entry("us", "代名", "私たちを"),
+		]),
+		"US 略:\n1. 合衆国\n\n代名:\n1. 私たちを",
+	);
 });

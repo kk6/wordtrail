@@ -242,6 +242,13 @@ async function startSession(evidenceDir) {
 					() => [],
 				);
 		},
+		// The section labels of the editor, top to bottom, among those shown.
+		async panelTags() {
+			const panel = await panelTarget().asPage();
+			return panel.$$eval("#editor .tag", (tags) =>
+				tags.filter((t) => t.checkVisibility()).map((t) => t.textContent),
+			);
+		},
 		// The ids of the editor's controls the reader can type into.
 		async panelEditables() {
 			const panel = await panelTarget().asPage();
@@ -1188,6 +1195,95 @@ const journeys = {
 				"英辞郎：1 語（replacement.txt）",
 			await s.panelText("eijiro-status"),
 		);
+	},
+	async "eijiro-panel"(s, check, evidenceDir) {
+		await s.openPanel();
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		check(
+			"取り込む前は、英辞郎の欄が出ない",
+			(await s.panelLook("#eijiro-section")).hidden &&
+				!(await s.panelTags()).includes("英辞郎"),
+			await s.panelTags(),
+		);
+
+		await s.clickInPanel("#toggle-list");
+		await s.chooseFileInPanel("#eijiro", eijiroSample);
+		await s.dblclick("#running");
+		await s.panelMeanings();
+		check(
+			"取り込んだ後、英辞郎にない語では、見つからなかったと出る",
+			(await s.panelText("translations")) === "英辞郎に見つかりませんでした。",
+			await s.panelText("translations"),
+		);
+		check(
+			"英辞郎の欄は Wiktionary の欄の上にあり、書き換えられない",
+			isDeepStrictEqual((await s.panelTags()).slice(0, 2), [
+				"英辞郎",
+				"Wiktionary",
+			]) && isDeepStrictEqual(await s.panelEditables(), ["word", "note"]),
+			[await s.panelTags(), await s.panelEditables()],
+		);
+
+		await s.typeInPanel("word", "Run");
+		await wait(500);
+		check(
+			"見出し語を直して欄を離れると、大文字と小文字を区別せずに引き直し、品詞ごとに番号付きで出る",
+			(await s.panelText("translations")) ===
+				"自動:\n1. 〔人が〕走る\n\n他動:\n1. 〔店を〕営む",
+			await s.panelText("translations"),
+		);
+		await s.typeInPanel("word", "us");
+		await wait(500);
+		check(
+			"綴りが違う見出し語には、元の綴りが付く",
+			(await s.panelText("translations")) ===
+				"US 略:\n1. 合衆国\n\n代名:\n1. 私たちを",
+			await s.panelText("translations"),
+		);
+		await s.typeInPanel("word", "colour");
+		await wait(500);
+		check(
+			"参照の行は、そのまま出る",
+			(await s.panelText("translations")) === "名:\n1. ＝<→color>",
+			await s.panelText("translations"),
+		);
+
+		await s.panelMeanings();
+		await s.clickInPanel("#save");
+		const saved = await s.savedWords();
+		check(
+			"保存した単語に、英辞郎の訳が入らない",
+			Boolean(saved.colour) && !JSON.stringify(saved).includes("＝<→color>"),
+			saved,
+		);
+		const downloads = path.join(evidenceDir, "downloads");
+		mkdirSync(downloads, { recursive: true });
+		await s.downloadTo(downloads);
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel("#export");
+		await wait(1000);
+		const [exported] = readdirSync(downloads);
+		const text = exported
+			? readFileSync(path.join(downloads, exported), "utf8")
+			: "";
+		check(
+			"書き出したファイルに、英辞郎の訳が入らない",
+			text.includes('"colour"') && !text.includes("＝<→color>"),
+			readdirSync(downloads),
+		);
+
+		await s.dblclick("#idempotent");
+		await s.panelMeanings();
+		await s.typeInPanel("word", "colour");
+		await wait(500);
+		check(
+			"登録済みの単語を開いても、英辞郎の訳がその場で引かれて出る",
+			(await s.panelText("status")).startsWith("登録済みの「colour」") &&
+				(await s.panelText("translations")) === "名:\n1. ＝<→color>",
+			[await s.panelText("status"), await s.panelText("translations")],
+		);
+		await s.screenshot("eijiro-panel");
 	},
 	async "stable-id"(s, check, evidenceDir) {
 		check(

@@ -41,11 +41,11 @@ description: Wordtrail（英語のページで単語をダブルクリックす�
 .claude/skills/verify-wordtrail/verify.mjs run all
 ```
 
-ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`meanings`、`save`、`registered`、`rename`、`unsaved`、`persist`、`list`、`backup`、`memo`、`relookup`、`migrate`、`speak`、`iframe`、`eijiro-import`、`stable-id` の 17 個。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
+ジャーニーは機能マップの 1 機能に対応する。今あるのは `select-word`、`sentence`、`meanings`、`save`、`registered`、`rename`、`unsaved`、`persist`、`list`、`backup`、`memo`、`relookup`、`migrate`、`speak`、`iframe`、`eijiro-import`、`eijiro-panel`、`stable-id` の 18 個。各ジャーニーの手順と、何が見えれば合格かは `features/` にある。
 
 - 操作は `page.mouse.click(..., { count: 2 })` で行う。これは本物のダブルクリックで、ユーザー操作として扱われる。`page.evaluate` で `dblclick` イベントを作るのは使わない。puppeteer は `evaluate` にユーザー操作の印を付けるので、本物の操作でなくても通ってしまう。
 - ダブルクリックする場所は、試験用ページの要素の `id`（`#ubiquitous`、`#deprecated` など）で指定する。座標は書かない。
-- パネルの中身は、パネルのページの `#sentence`、`#url`、`#status`、`#meanings`（Wiktionary の欄）の `textContent` と、入力欄の `#word`、`#note`（メモ）の `value` で読む（`panelText`）。Wiktionary を引き終わるのを待つときは `panelMeanings` を使う。引き終わった後の `#meanings` の `textContent` を返す。
+- パネルの中身は、パネルのページの `#sentence`、`#url`、`#status`、`#translations`（英辞郎の欄）、`#meanings`（Wiktionary の欄）の `textContent` と、入力欄の `#word`、`#note`（メモ）の `value` で読む（`panelText`）。Wiktionary を引き終わるのを待つときは `panelMeanings` を使う。引き終わった後の `#meanings` の `textContent` を返す。
 - パネルの入力欄への入力は、`typeInPanel` で本物のキー入力として行う。打ち終わりに Tab で欄を離れる。欄にとどまるときは `{ leave: false }` を付け、後で `leavePanelField` で離れる。
 - 新しい機能を足したら、`verify.mjs` の `journeys` にジャーニーを、`features/` に同じ名前のファイルを追加する。必要なら試験用ページに要素を足す。
 

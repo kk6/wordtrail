@@ -59,6 +59,35 @@ export function toRecords(entries) {
 	return [...byKey].map(([key, entries]) => ({ key, entries }));
 }
 
+/**
+ * Translations as plain text in the shape of the Wiktionary section: "自動:"
+ * heads a part of speech and its translations follow, numbered.
+ * @param {string} key the lowercase headword that was looked up
+ * @param {{ headword: string, partOfSpeech: string | null, translation: string }[]} entries
+ */
+export function formatTranslations(key, entries) {
+	const groups = new Map();
+	for (const { headword, partOfSpeech, translation } of entries) {
+		// 自動-1 numbers a sense and 1-動 a homograph; the list numbers both.
+		const part = partOfSpeech?.replace(/^\d+-|-\d+$/g, "") ?? "";
+		const heading = [headword !== key && headword, part]
+			.filter(Boolean)
+			.join(" ");
+		if (!groups.has(heading)) groups.set(heading, []);
+		groups.get(heading).push(translation);
+	}
+	return [...groups]
+		.map(([heading, translations]) =>
+			[
+				heading && `${heading}:`,
+				...translations.map((t, i) => `${i + 1}. ${t}`),
+			]
+				.filter(Boolean)
+				.join("\n"),
+		)
+		.join("\n\n");
+}
+
 // IndexedDB rather than chrome.storage.local, whose 10MB cap is below the
 // ~26MB of translations.
 const DB = "eijiro";
@@ -108,6 +137,27 @@ export async function eijiroImport() {
 			const request = db.transaction(META).objectStore(META).get("import");
 			request.onsuccess = () => resolve(request.result);
 			request.onerror = () => reject(request.error);
+		});
+	} finally {
+		db.close();
+	}
+}
+
+/**
+ * The translations of key, [] when the import has none, or undefined when
+ * nothing has been imported yet.
+ * @param {string} key the lowercase headword
+ */
+export async function findInEijiro(key) {
+	const db = await openDb();
+	try {
+		return await new Promise((resolve, reject) => {
+			const tx = db.transaction([WORDS, META]);
+			const done = tx.objectStore(META).get("import");
+			const found = tx.objectStore(WORDS).get(key);
+			tx.oncomplete = () =>
+				resolve(done.result && (found.result?.entries ?? []));
+			tx.onerror = () => reject(tx.error);
 		});
 	} finally {
 		db.close();

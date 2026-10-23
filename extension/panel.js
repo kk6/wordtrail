@@ -2,6 +2,8 @@ import { exportNotebook, importNotebook } from "./backup.js";
 import { lookUp } from "./dictionary.js";
 import {
 	eijiroImport,
+	findInEijiro,
+	formatTranslations,
 	readEntries,
 	replaceEijiro,
 	toRecords,
@@ -34,6 +36,8 @@ const [
 	eijiroButton,
 	eijiroFile,
 	eijiroStatus,
+	eijiroSection,
+	translations,
 ] = [
 	"word",
 	"meanings",
@@ -59,6 +63,8 @@ const [
 	"eijiro",
 	"eijiro-file",
 	"eijiro-status",
+	"eijiro-section",
+	"translations",
 ].map((id) => document.getElementById(id));
 let shown;
 // What the Wiktionary section shows: the meanings for key, null while they are
@@ -137,6 +143,7 @@ function showSaved(saved, status, warning) {
 		meanings: saved.meanings,
 		ready: Promise.resolve(),
 	});
+	showTranslations(saved.headword.toLowerCase());
 	showHistory(saved.contexts);
 	setStatus(status, warning);
 	markSaved();
@@ -149,6 +156,20 @@ function lookUpMeanings(key) {
 		if (dictionary === looking) showMeanings(looking);
 	});
 	showMeanings(looking);
+	showTranslations(key);
+}
+
+// Looked up each time rather than saved with the word: the data can't be
+// redistributed, so it must stay out of the notebook and its exports.
+async function showTranslations(key) {
+	const found = await findInEijiro(key);
+	// Another word took the screen while this one was looked up.
+	if (dictionary.key !== key) return;
+	eijiroSection.hidden = !found;
+	translations.textContent = found?.length
+		? formatTranslations(key, found)
+		: "英辞郎に見つかりませんでした。";
+	translations.classList.toggle("muted", !found?.length);
 }
 
 function showMeanings(next) {
