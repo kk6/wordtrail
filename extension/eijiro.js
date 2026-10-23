@@ -43,3 +43,73 @@ export async function readEntries(stream) {
 	if (!entries.length) throw new Error("英辞郎の行が見つかりません");
 	return entries;
 }
+
+/**
+ * Entries grouped under their lowercase headword, so one read finds every
+ * spelling (US and us) of the word the panel looks up.
+ * @param {{ headword: string, partOfSpeech: string | null, translation: string }[]} entries
+ */
+export function toRecords(entries) {
+	const byKey = new Map();
+	for (const entry of entries) {
+		const key = entry.headword.toLowerCase();
+		if (!byKey.has(key)) byKey.set(key, []);
+		byKey.get(key).push(entry);
+	}
+	return [...byKey].map(([key, entries]) => ({ key, entries }));
+}
+
+// IndexedDB rather than chrome.storage.local, whose 10MB cap is below the
+// ~26MB of translations.
+const DB = "eijiro";
+const WORDS = "words";
+const META = "meta";
+
+function openDb() {
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.open(DB, 1);
+		request.onupgradeneeded = () => {
+			request.result.createObjectStore(WORDS, { keyPath: "key" });
+			request.result.createObjectStore(META);
+		};
+		request.onsuccess = () => resolve(request.result);
+		request.onerror = () => reject(request.error);
+	});
+}
+
+/**
+ * Replaces the stored translations in one transaction: if any write fails,
+ * the earlier import stays as it was.
+ * @param {ReturnType<typeof toRecords>} records
+ * @param {string} fileName
+ */
+export async function replaceEijiro(records, fileName) {
+	const db = await openDb();
+	try {
+		await new Promise((resolve, reject) => {
+			const tx = db.transaction([WORDS, META], "readwrite");
+			const words = tx.objectStore(WORDS);
+			words.clear();
+			for (const record of records) words.put(record);
+			tx.objectStore(META).put({ fileName, count: records.length }, "import");
+			tx.oncomplete = resolve;
+			tx.onerror = tx.onabort = () => reject(tx.error);
+		});
+	} finally {
+		db.close();
+	}
+}
+
+/** @returns {Promise<{ fileName: string, count: number } | undefined>} */
+export async function eijiroImport() {
+	const db = await openDb();
+	try {
+		return await new Promise((resolve, reject) => {
+			const request = db.transaction(META).objectStore(META).get("import");
+			request.onsuccess = () => resolve(request.result);
+			request.onerror = () => reject(request.error);
+		});
+	} finally {
+		db.close();
+	}
+}

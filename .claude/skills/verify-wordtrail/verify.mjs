@@ -29,6 +29,8 @@ const fixtures = {
 	"/frame": readFileSync(path.join(here, "fixtures/frame.html")),
 	"/other": readFileSync(path.join(here, "fixtures/other.html")),
 };
+// Hand-written in Eijiro's format; the real data must never be committed.
+const eijiroSample = path.join(root, "test/fixtures/eijiro-sample.txt");
 
 function expectedExtensionId() {
 	const manifest = JSON.parse(
@@ -322,6 +324,60 @@ async function startSession(evidenceDir) {
 					contexts: [...d.querySelectorAll("ol li")].map((li) => li.innerText),
 				}),
 			);
+		},
+		// Records the status text and whether the button is disabled at every
+		// change from now on, to catch states that pass too fast to poll.
+		async watchPanelStatus(statusSelector, buttonSelector) {
+			const panel = await panelTarget().asPage();
+			await panel.evaluate(
+				(statusSelector, buttonSelector) => {
+					const status = document.querySelector(statusSelector);
+					const button = document.querySelector(buttonSelector);
+					window.statusSeen = [];
+					new MutationObserver(() =>
+						window.statusSeen.push({
+							text: status.textContent,
+							disabled: button.disabled,
+						}),
+					).observe(document.querySelector("#list"), {
+						subtree: true,
+						childList: true,
+						characterData: true,
+						attributes: true,
+					});
+				},
+				statusSelector,
+				buttonSelector,
+			);
+			return () => panel.evaluate(() => window.statusSeen);
+		},
+		// Read-only look at the imported Eijiro headwords. Call it only after an
+		// import: opening a database that doesn't exist yet creates it empty.
+		async eijiroKeys() {
+			const panel = await panelTarget().asPage();
+			return panel.evaluate(
+				() =>
+					new Promise((resolve, reject) => {
+						const open = indexedDB.open("eijiro");
+						open.onerror = () => reject(open.error);
+						open.onsuccess = () => {
+							const request = open.result
+								.transaction("words")
+								.objectStore("words")
+								.getAllKeys();
+							request.onsuccess = () => {
+								open.result.close();
+								resolve(request.result);
+							};
+						};
+					}),
+			);
+		},
+		// Closing the panel tab and opening it again, as the reader closing and
+		// reopening the side panel.
+		async reopenPanel() {
+			await (await panelTarget().asPage()).close();
+			await this.openPanel();
 		},
 		// Read-only look at what was saved, for values the panel doesn't show as-is.
 		async savedWords() {
@@ -1049,6 +1105,89 @@ const journeys = {
 			(await s.panelText("url")) === s.url,
 		);
 		await s.screenshot("iframe");
+	},
+	async "eijiro-import"(s, check, evidenceDir) {
+		await s.openPanel();
+		await s.clickInPanel("#toggle-list");
+		check(
+			"取り込む前は、取り込んでいないと出る",
+			(await s.panelText("eijiro-status")) === "英辞郎は取り込んでいません。",
+			await s.panelText("eijiro-status"),
+		);
+
+		const seen = await s.watchPanelStatus("#eijiro-status", "#eijiro");
+		await s.chooseFileInPanel("#eijiro", eijiroSample);
+		const states = await seen();
+		check(
+			"取り込み中はボタンが押せず、取り込み中と出る",
+			states.some((x) => x.disabled && x.text === "英辞郎を取り込んでいます…"),
+			states,
+		);
+		check(
+			"取り込み終わると、語数とファイル名が出て、ボタンがまた押せる",
+			isDeepStrictEqual(states.at(-1), {
+				text: "英辞郎：5 語（eijiro-sample.txt）",
+				disabled: false,
+			}),
+			states.at(-1),
+		);
+		check(
+			"1 語の見出し語が、小文字ごとにまとめて取り込まれる",
+			isDeepStrictEqual(await s.eijiroKeys(), [
+				"colour",
+				"don't",
+				"run",
+				"sample-word",
+				"us",
+			]),
+			await s.eijiroKeys(),
+		);
+		await s.reopenPanel();
+		await s.clickInPanel("#toggle-list");
+		check(
+			"パネルを開き直しても、語数とファイル名が出る",
+			(await s.panelText("eijiro-status")) ===
+				"英辞郎：5 語（eijiro-sample.txt）",
+			await s.panelText("eijiro-status"),
+		);
+
+		// ■ is 0x81 0xA1 in Shift JIS and the rest is ASCII, which Shift JIS
+		// shares, so this is a well-formed Eijiro file without an encoder.
+		const replacement = path.join(evidenceDir, "replacement.txt");
+		writeFileSync(
+			replacement,
+			Buffer.concat([
+				Buffer.from([0x81, 0xa1]),
+				Buffer.from("apple  {n} : APPLE\r\n"),
+			]),
+		);
+		await s.chooseFileInPanel("#eijiro", replacement);
+		check(
+			"取り込み直すと、前のデータが置き換わる",
+			(await s.panelText("eijiro-status")) ===
+				"英辞郎：1 語（replacement.txt）" &&
+				isDeepStrictEqual(await s.eijiroKeys(), ["apple"]),
+			[await s.panelText("eijiro-status"), await s.eijiroKeys()],
+		);
+
+		const notEijiro = path.join(evidenceDir, "not-eijiro.json");
+		writeFileSync(notEijiro, JSON.stringify({ format: "wordtrail" }));
+		await s.chooseFileInPanel("#eijiro", notEijiro);
+		check(
+			"英辞郎でないファイルでは、失敗したと出て、前のデータが残る",
+			(await s.panelText("eijiro-status")).startsWith("取り込めませんでした") &&
+				isDeepStrictEqual(await s.eijiroKeys(), ["apple"]),
+			[await s.panelText("eijiro-status"), await s.eijiroKeys()],
+		);
+		await s.screenshot("eijiro-import");
+		await s.reopenPanel();
+		await s.clickInPanel("#toggle-list");
+		check(
+			"失敗の後に開き直すと、前に取り込んだ語数とファイル名が出る",
+			(await s.panelText("eijiro-status")) ===
+				"英辞郎：1 語（replacement.txt）",
+			await s.panelText("eijiro-status"),
+		);
 	},
 	async "stable-id"(s, check, evidenceDir) {
 		check(

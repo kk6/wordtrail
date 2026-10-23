@@ -166,7 +166,8 @@
 				margin-top: 20px;
 			}
 			#status,
-			#list-status {
+			#list-status,
+			#eijiro-status {
 				font-size: 12px;
 				color: var(--muted);
 			}
@@ -246,6 +247,11 @@
 				<button id="import" type="button">読み込み</button>
 				<input id="import-file" type="file" accept=".json,application/json" hidden />
 				<span id="list-status" role="status"></span>
+			</div>
+			<div class="actions">
+				<button id="eijiro" type="button">英辞郎を取り込む</button>
+				<input id="eijiro-file" type="file" accept=".txt,text/plain" hidden />
+				<span id="eijiro-status" role="status"></span>
 			</div>
 			<div class="section">
 				<h2>登録した単語（新しい順）</h2>

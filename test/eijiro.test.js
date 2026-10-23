@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { parseLine, readEntries } from "../extension/eijiro.js";
+import { parseLine, readEntries, toRecords } from "../extension/eijiro.js";
 
 // Hand-written in Eijiro's format; the real data must never be committed.
 const sample = readFileSync(
@@ -95,4 +95,14 @@ test("アポストロフィを含む 1 語は、取り込む", () => {
 test("英辞郎の形でない行は、取り込まない", () => {
 	assert.equal(parseLine("run,走る"), null);
 	assert.equal(parseLine(""), null);
+});
+
+test("取り込む行を、小文字の見出し語ごとに 1 件にまとめる", () => {
+	assert.deepEqual(toRecords(SAMPLE_ENTRIES), [
+		{ key: "run", entries: SAMPLE_ENTRIES.slice(0, 2) },
+		{ key: "colour", entries: [SAMPLE_ENTRIES[2]] },
+		{ key: "sample-word", entries: [SAMPLE_ENTRIES[3]] },
+		{ key: "us", entries: SAMPLE_ENTRIES.slice(4, 6) },
+		{ key: "don't", entries: [SAMPLE_ENTRIES[6]] },
+	]);
 });

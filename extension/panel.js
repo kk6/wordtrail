@@ -1,5 +1,11 @@
 import { exportNotebook, importNotebook } from "./backup.js";
 import { lookUp } from "./dictionary.js";
+import {
+	eijiroImport,
+	readEntries,
+	replaceEijiro,
+	toRecords,
+} from "./eijiro.js";
 import { formatMeanings } from "./meanings-text.js";
 import { newestFirst, removeWord, saveEntry } from "./notebook.js";
 
@@ -25,6 +31,9 @@ const [
 	listStatus,
 	speakWord,
 	speakSentence,
+	eijiroButton,
+	eijiroFile,
+	eijiroStatus,
 ] = [
 	"word",
 	"meanings",
@@ -47,6 +56,9 @@ const [
 	"list-status",
 	"speak-word",
 	"speak-sentence",
+	"eijiro",
+	"eijiro-file",
+	"eijiro-status",
 ].map((id) => document.getElementById(id));
 let shown;
 // What the Wiktionary section shows: the meanings for key, null while they are
@@ -231,7 +243,15 @@ function showList() {
 	editor.hidden = true;
 	list.hidden = false;
 	toggleList.textContent = "戻る";
+	showEijiroImport();
 	return renderList();
+}
+
+async function showEijiroImport() {
+	const done = await eijiroImport();
+	eijiroStatus.textContent = done
+		? `英辞郎：${done.count.toLocaleString("ja-JP")} 語（${done.fileName}）`
+		: "英辞郎は取り込んでいません。";
 }
 
 async function renderList() {
@@ -330,6 +350,25 @@ importFile.addEventListener("change", async () => {
 		return;
 	await chrome.storage.local.set({ words: result.words });
 	listStatus.textContent = `${count(result.words)} 語を読み込みました。`;
+});
+
+eijiroButton.addEventListener("click", () => eijiroFile.click());
+
+eijiroFile.addEventListener("change", async () => {
+	const [file] = eijiroFile.files;
+	eijiroFile.value = "";
+	if (!file) return;
+	eijiroButton.disabled = true;
+	eijiroStatus.textContent = "英辞郎を取り込んでいます…";
+	try {
+		const records = toRecords(await readEntries(file.stream()));
+		await replaceEijiro(records, file.name);
+		await showEijiroImport();
+	} catch (error) {
+		eijiroStatus.textContent = `取り込めませんでした（${error.message}）。前に取り込んだ英辞郎はそのままです。`;
+	} finally {
+		eijiroButton.disabled = false;
+	}
 });
 
 toggleList.addEventListener("click", () =>
