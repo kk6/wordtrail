@@ -1,2 +1,6 @@
 node_modules/
 artifacts/
+
+# 英辞郎のデータは再配布できないので、誤ってコピーしても追跡しない（ADR-0003）
+EIJIRO*[0-9].TXT
+EIJIRO*[0-9].ZIP
