@@ -4,9 +4,9 @@
 
 ## 読む場所
 
-- 何を作るか、なぜそうしたか: `docs/adr/0001-vocabulary-notebook-while-reading.md`（v0.1 の完成条件と対象外もここ）
-- 使い方（完成形として先に書いたもの）: `README.md`
-- v0.1 のタスクと完了の確認: `TODO.md`
+- 何を作るか、なぜそうしたか: `docs/adr/`。全体の方針は ADR-0001 に書いた。範囲を足したり変えたりしたときは、その後の ADR に書いた。対象外の機能は、各 ADR の Non-goals に書いた
+- 使い方: `README.md`
+- 版ごとのタスクと完了の確認: `TODO.md`
 - 次の一手: `NEXT.md`
 - アイデアの置き場: `docs/ideas.md`
 - 版ごとの変更: `CHANGELOG.md`
@@ -25,6 +25,7 @@
 
 ## 進め方
 
-- v0.1 の対象外に入っている機能は作らない。思いついたら `docs/ideas.md` に書く
+- ADR の Non-goals に入っている機能や、どの ADR にもない機能は作らない。思いついたら `docs/ideas.md` に書く
+- 使う人から見える挙動を変えたら、`README.md` の該当する手順も直す
 - 作業の終わりにコミットし、`NEXT.md` に次の一手を 1 行で書く
 - 使う人から見える変更は、`CHANGELOG.md` の「未リリース」に書く。版にするときは、`manifest.json` の `version` を上げ、`v0.x.0` のタグを付ける
