@@ -34,7 +34,7 @@ Preconditions:
 - **保存と書き出し。** そのまま保存すると、`savedWords()` に `colour` があり、`＝<→color>` は含まれない。一覧の `#export` で書き出したファイルにも含まれない。
 - **登録済み。** `#idempotent` をダブルクリックして見出し語を `colour` にすると、登録済みの `colour` が出て、`#translations` が `名:` `1. ＝<→color>` になる。
 - **一覧から開く。** 一覧で `colour` の `.open` をクリックすると、いちばん上のラベルが `英辞郎` で、`#translations` が同じ訳になる。
-- **折り畳み。** 欄は最初は開いている。`#eijiro-section summary` をクリックすると `#translations` が隠れ、ラベル `英辞郎` は残る。`#ubiquitous` をダブルクリックしても、`reopenPanel()` の後も畳んだまま。`storedKeys()` は `words` だけ。もう一度クリックして `reopenPanel()` すると、開いたまま。
+- **折り畳み。** 欄は最初は開いている。`#eijiro-section summary` をクリックすると `#translations` が隠れ、ラベル `英辞郎` は残り、ラベルの後ろに `畳んでいます（クリックで開く）` と出る（`foldHint()`）。畳んだ見た目は `eijiro-folded-panel.png` に残る。`#ubiquitous` をダブルクリックしても、`reopenPanel()` の後も畳んだまま。`storedKeys()` は `words` だけ。もう一度クリックして `reopenPanel()` すると、開いたままで、畳んでいるとは出ない。
 - **証跡。** `eijiro-panel-page.png`、`eijiro-panel-panel.png`、`downloads/` の書き出したファイルが残る。
 
 ## Gotchas

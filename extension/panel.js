@@ -410,6 +410,7 @@ remove.addEventListener("click", async () => {
 	// The word is gone, so its unsaved edits are nothing to ask about later.
 	markSaved();
 	showList();
+	listStatus.textContent = `「${headword}」を削除しました。`;
 });
 
 save.addEventListener("click", async () => {

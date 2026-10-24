@@ -399,6 +399,14 @@ async function startSession(evidenceDir) {
 			await (await panelTarget().asPage()).close();
 			await this.openPanel();
 		},
+		// The hint the folded Eijiro label shows after its name.
+		async foldHint() {
+			const panel = await panelTarget().asPage();
+			return panel.$eval(
+				"#eijiro-section summary",
+				(e) => getComputedStyle(e, "::after").content,
+			);
+		},
 		// Every key the extension keeps in its local storage.
 		async storedKeys() {
 			const panel = await panelTarget().asPage();
@@ -869,8 +877,10 @@ const journeys = {
 		);
 		await s.clickInPanel("#delete", { dialog: true });
 		check(
-			"削除の確認で承認すると、その単語だけが消えて一覧に戻る",
+			"削除の確認で承認すると、その単語だけが消えて一覧に戻り、削除したと出る",
 			(await s.screen()).showing === "list" &&
+				(await s.panelText("list-status")) ===
+					"「ubiquitous」を削除しました。" &&
 				isDeepStrictEqual(await s.listHeadwords(), [
 					"deprecated",
 					"idempotent",
@@ -1438,12 +1448,14 @@ const journeys = {
 		);
 		await s.clickInPanel("#eijiro-section summary");
 		check(
-			"英辞郎のラベルをクリックすると、訳が畳まれてラベルだけが残る",
+			"英辞郎のラベルをクリックすると、訳が畳まれ、ラベルに畳んでいると出る",
 			!(await s.panelLook("#eijiro-section")).open &&
 				!(await s.panelLook("#translations")).shown &&
-				(await s.panelTags())[0] === "英辞郎",
-			[await s.panelLook("#translations"), await s.panelTags()],
+				(await s.panelTags())[0] === "英辞郎" &&
+				(await s.foldHint()).includes("畳んでいます"),
+			[await s.panelLook("#translations"), await s.foldHint()],
 		);
+		await s.screenshot("eijiro-folded");
 		await s.dblclick("#ubiquitous");
 		await s.panelMeanings();
 		check(
@@ -1467,8 +1479,9 @@ const journeys = {
 		await s.clickInPanel("#eijiro-section summary");
 		await s.reopenPanel();
 		check(
-			"開いた後にパネルを開き直すと、開いたまま",
-			(await s.panelLook("#eijiro-section")).open,
+			"開いた後にパネルを開き直すと、開いたままで、畳んでいるとは出ない",
+			(await s.panelLook("#eijiro-section")).open &&
+				!(await s.foldHint()).includes("畳んでいます"),
 			await s.panelLook("#eijiro-section"),
 		);
 		await s.screenshot("eijiro-panel");
