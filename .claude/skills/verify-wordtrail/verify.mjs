@@ -318,19 +318,30 @@ async function startSession(evidenceDir) {
 				items.map((item) => item.dataset.headword),
 			);
 		},
-		// What the reader sees in an opened word of the list.
-		async listDetail(headword) {
+		// What the reader sees on a row of the list.
+		async listRow(headword) {
 			const panel = await panelTarget().asPage();
-			return panel.$eval(
-				`#words li[data-headword="${headword}"] details`,
-				(d) => ({
-					open: d.open,
-					labels: [...d.querySelectorAll(".tag")].map((t) => t.textContent),
-					meanings: d.querySelector(".meanings").innerText,
-					note: d.querySelector(".note")?.innerText ?? null,
-					contexts: [...d.querySelectorAll("ol li")].map((li) => li.innerText),
-				}),
+			return panel.$eval(`#words li[data-headword="${headword}"]`, (li) =>
+				li.innerText.replace(/\s+/g, " ").trim(),
 			);
+		},
+		// Which screen is up and what the editor offers, as the reader sees it.
+		async screen() {
+			const panel = await panelTarget().asPage();
+			return panel.evaluate(() => {
+				const $ = (id) => document.getElementById(id);
+				return {
+					showing: $("list").hidden ? "editor" : "list",
+					word: $("word").value,
+					wordEditable: !$("word").readOnly,
+					note: $("note").value,
+					current: $("current").checkVisibility(),
+					remove: $("delete").checkVisibility(),
+					contexts: $("history").hidden ? 0 : $("contexts").children.length,
+					nav: $("toggle-list").textContent,
+					navEnabled: !$("toggle-list").disabled,
+				};
+			});
 		},
 		// Records the status text and whether the button is disabled at every
 		// change from now on, to catch states that pass too fast to poll.
@@ -698,6 +709,11 @@ const journeys = {
 			if (id === "#idempotent") await s.typeInPanel("note", "冪等");
 			await s.clickInPanel("#save");
 		}
+		check(
+			"ダブルクリックで開いた編集画面には、削除が出ない",
+			!(await s.screen()).remove,
+			await s.screen(),
+		);
 		await s.clickInPanel("#toggle-list");
 		check(
 			"一覧は新しい順に並ぶ",
@@ -708,42 +724,101 @@ const journeys = {
 			]),
 			await s.listHeadwords(),
 		);
-		await s.clickInPanel('#words li[data-headword="idempotent"] summary');
-		const detail = await s.listDetail("idempotent");
 		check(
-			"単語をクリックすると、Wiktionary の意味、メモ、これまでの文脈が出る",
-			detail.open &&
-				isDeepStrictEqual(detail.labels, ["Wiktionary", "メモ"]) &&
-				detail.meanings.length > 0 &&
-				detail.note === "冪等" &&
-				detail.contexts.length === 1 &&
-				detail.contexts[0].startsWith(
-					"単語 The API is ubiquitous and idempotent.",
-				),
-			detail,
+			"一覧の行には、見出し語、▶、文脈の件数だけが出る",
+			(await s.listRow("idempotent")) === "idempotent ▶ 文脈 1",
+			await s.listRow("idempotent"),
 		);
-		const remove = '#words li[data-headword="ubiquitous"] .delete';
-		await s.clickInPanel('#words li[data-headword="ubiquitous"] summary');
+		const row = '#words li[data-headword="idempotent"]';
+		await s.clickInPanel(`${row} .speak`);
 		check(
-			"メモのない単語には、メモの欄が出ない",
-			(await s.listDetail("ubiquitous")).note === null,
-			await s.listDetail("ubiquitous"),
+			"一覧の行の ▶ を押しても、編集画面に移らない",
+			(await s.screen()).showing === "list",
+			await s.screen(),
 		);
-		await s.clickInPanel(remove, { dialog: false });
+		await s.clickInPanel(`${row} .count`);
+		const opened = await s.screen();
 		check(
-			"削除の確認でキャンセルすると、消えない",
-			(await s.listHeadwords()).length === 3,
+			"行をクリックすると、今の文の欄のない編集画面に移り、メモとこれまでの文脈が出る",
+			opened.showing === "editor" &&
+				opened.word === "idempotent" &&
+				opened.note === "冪等" &&
+				opened.contexts === 1 &&
+				!opened.current &&
+				isDeepStrictEqual(await s.panelTags(), ["Wiktionary", "メモ"]) &&
+				(await s.panelText("meanings")).length > 0,
+			[opened, await s.panelTags()],
 		);
-		await s.clickInPanel(remove, { dialog: true });
 		check(
-			"削除の確認で承認すると、その単語だけが消える",
-			isDeepStrictEqual(await s.listHeadwords(), [
-				"deprecated",
-				"idempotent",
-			]) && !("ubiquitous" in (await s.savedWords())),
+			"一覧から開いた編集画面で書けるのはメモだけで、削除が出る",
+			isDeepStrictEqual(await s.panelEditables(), ["note"]) && opened.remove,
+			await s.panelEditables(),
+		);
+		await s.typeInPanel("note", "冪等。何度実行しても結果が同じ");
+		await s.clickInPanel("#save");
+		const saved = (await s.savedWords()).idempotent;
+		check(
+			"一覧から開いて保存すると、メモだけが書き換わり、文脈は増えない",
+			saved.note === "冪等。何度実行しても結果が同じ" &&
+				saved.contexts.length === 1 &&
+				(await s.screen()).showing === "editor" &&
+				(await s.panelLook("#unsaved")).hidden,
+			[saved, await s.screen()],
+		);
+		check(
+			"一覧から開いた編集画面のナビのボタンは「一覧」",
+			(await s.screen()).nav === "一覧",
+			await s.screen(),
+		);
+		await s.clickInPanel("#toggle-list");
+		check(
+			"「一覧」で一覧に戻る",
+			(await s.screen()).showing === "list",
+			await s.screen(),
+		);
+		await s.clickInPanel("#toggle-list");
+		const back = await s.screen();
+		check(
+			"一覧の「戻る」で、最後にダブルクリックした単語が今の文と一緒に出る",
+			back.showing === "editor" &&
+				back.word === "deprecated" &&
+				back.wordEditable &&
+				back.current &&
+				!back.remove &&
+				(await s.panelText("sentence")).includes("deprecated"),
+			back,
+		);
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel('#words li[data-headword="ubiquitous"] .open');
+		await s.clickInPanel("#delete", { dialog: false });
+		check(
+			"削除の確認でキャンセルすると、消えずに編集画面のまま",
+			(await s.screen()).showing === "editor" &&
+				"ubiquitous" in (await s.savedWords()),
+			await s.screen(),
+		);
+		await s.clickInPanel("#delete", { dialog: true });
+		check(
+			"削除の確認で承認すると、その単語だけが消えて一覧に戻る",
+			(await s.screen()).showing === "list" &&
+				isDeepStrictEqual(await s.listHeadwords(), [
+					"deprecated",
+					"idempotent",
+				]) &&
+				!("ubiquitous" in (await s.savedWords())),
 			await s.listHeadwords(),
 		);
 		await s.screenshot("list");
+		await s.reloadExtension();
+		await s.openPanel();
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel('#words li[data-headword="idempotent"] .open');
+		await s.clickInPanel("#toggle-list");
+		check(
+			"ダブルクリックした単語がまだないときは、一覧の「戻る」が押せない",
+			!(await s.screen()).navEnabled,
+			await s.screen(),
+		);
 	},
 	async backup(s, check, evidenceDir) {
 		await s.openPanel();
@@ -905,14 +980,13 @@ const journeys = {
 		);
 		await s.screenshot("memo-editor");
 		await s.clickInPanel("#toggle-list");
-		await s.clickInPanel('#words li[data-headword="ubiquitous"] summary');
-		const detail = await s.listDetail("ubiquitous");
+		await s.clickInPanel('#words li[data-headword="ubiquitous"] .open');
 		check(
-			"一覧では、Wiktionary とメモが別々のラベルで出る",
-			isDeepStrictEqual(detail.labels, ["Wiktionary", "メモ"]) &&
-				detail.meanings === meanings &&
-				detail.note === memo,
-			detail,
+			"一覧から開いても、Wiktionary とメモが別々のラベルで出る",
+			isDeepStrictEqual(await s.panelTags(), ["Wiktionary", "メモ"]) &&
+				(await s.panelText("meanings")) === meanings &&
+				(await s.panelText("note")) === memo,
+			[await s.panelTags(), await s.panelText("note")],
 		);
 		await s.screenshot("memo");
 	},
@@ -1071,27 +1145,20 @@ const journeys = {
 		);
 		await s.clickInPanel("#toggle-list");
 		const entry = '#words li[data-headword="ubiquitous"]';
-		await s.clickInPanel(`${entry} summary .speak`);
+		await s.clickInPanel(`${entry} .speak`);
 		check(
-			"一覧の見出し語のボタンで見出し語を読み上げ、閉じた単語は閉じたまま",
+			"一覧の見出し語のボタンで見出し語を読み上げ、一覧のまま",
 			(await lastSpoken())?.text === "ubiquitous" &&
-				!(await s.listDetail("ubiquitous")).open,
-			{ spoken: await lastSpoken(), detail: await s.listDetail("ubiquitous") },
+				(await s.screen()).showing === "list",
+			{ spoken: await lastSpoken(), screen: await s.screen() },
 		);
-		await s.clickInPanel(`${entry} summary`);
-		await s.clickInPanel(`${entry} li:last-child .speak`);
+		await s.clickInPanel(`${entry} .open`);
+		await s.clickInPanel("#contexts li:last-child .speak");
 		check(
-			"一覧の文脈のボタンでも、その文を読み上げる",
+			"一覧から開いた単語のこれまでの文脈のボタンでも、その文を読み上げる",
 			(await lastSpoken())?.text ===
 				"Ubiquitous sensors now watch every street.",
 			await lastSpoken(),
-		);
-		await s.clickInPanel(`${entry} summary .speak`);
-		check(
-			"開いた単語で見出し語のボタンを押しても、開いたまま",
-			(await lastSpoken())?.text === "ubiquitous" &&
-				(await s.listDetail("ubiquitous")).open,
-			{ spoken: await lastSpoken(), detail: await s.listDetail("ubiquitous") },
 		);
 		await s.screenshot("speak");
 	},
@@ -1282,6 +1349,15 @@ const journeys = {
 			(await s.panelText("status")).startsWith("登録済みの「colour」") &&
 				(await s.panelText("translations")) === "名:\n1. ＝<→color>",
 			[await s.panelText("status"), await s.panelText("translations")],
+		);
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel('#words li[data-headword="colour"] .open');
+		await wait(500);
+		check(
+			"一覧から開いた単語でも、英辞郎の訳が出る",
+			(await s.panelTags())[0] === "英辞郎" &&
+				(await s.panelText("translations")) === "名:\n1. ＝<→color>",
+			[await s.panelTags(), await s.panelText("translations")],
 		);
 		await s.screenshot("eijiro-panel");
 	},

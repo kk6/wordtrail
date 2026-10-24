@@ -10,7 +10,7 @@
 - `eijiro-panel-relookup` は、見出し語を直して欄を離れると、大文字と小文字を区別せずに引き直す。
 - `eijiro-panel-spelling` は、綴りが違う見出し語に元の綴りを添える。
 - `eijiro-panel-not-saved` は、保存した単語と書き出すファイルに英辞郎の訳を入れない。
-- `eijiro-panel-registered` は、登録済みの単語を開いたときも、訳をその場で引いて出す。
+- `eijiro-panel-registered` は、登録済みの単語を開いたときも、一覧から開いたときも、訳をその場で引いて出す。
 
 ## How to get to it (user POV)
 
@@ -32,6 +32,7 @@ Preconditions:
 - **参照。** `colour` にすると `名:` `1. ＝<→color>` になる。
 - **保存と書き出し。** そのまま保存すると、`savedWords()` に `colour` があり、`＝<→color>` は含まれない。一覧の `#export` で書き出したファイルにも含まれない。
 - **登録済み。** `#idempotent` をダブルクリックして見出し語を `colour` にすると、登録済みの `colour` が出て、`#translations` が `名:` `1. ＝<→color>` になる。
+- **一覧から開く。** 一覧で `colour` の `.open` をクリックすると、いちばん上のラベルが `英辞郎` で、`#translations` が同じ訳になる。
 - **証跡。** `eijiro-panel-page.png`、`eijiro-panel-panel.png`、`downloads/` の書き出したファイルが残る。
 
 ## Gotchas

@@ -9,7 +9,7 @@ import {
 	toRecords,
 } from "./eijiro.js";
 import { formatMeanings } from "./meanings-text.js";
-import { newestFirst, removeWord, saveEntry } from "./notebook.js";
+import { newestFirst, removeWord, saveEntry, saveNote } from "./notebook.js";
 
 const [
 	word,
@@ -38,6 +38,8 @@ const [
 	eijiroStatus,
 	eijiroSection,
 	translations,
+	current,
+	remove,
 ] = [
 	"word",
 	"meanings",
@@ -65,7 +67,11 @@ const [
 	"eijiro-status",
 	"eijiro-section",
 	"translations",
+	"current",
+	"delete",
 ].map((id) => document.getElementById(id));
+// The word on the editor: a double-click's selection ({ word, sentence, url })
+// or a word opened from the list ({ word, fromList: true }).
 let shown;
 // What the Wiktionary section shows: the meanings for key, null while they are
 // looked up, and ready once they are in.
@@ -117,14 +123,22 @@ async function show(selection) {
 	shown = selection;
 	showEditor();
 	const headword = selection.word.toLowerCase();
-	sentence.textContent = selection.sentence;
-	url.replaceChildren(contextLink(selection.url));
+	const { fromList = false } = selection;
+	// A word opened from the list has no sentence being read, and renaming it
+	// would leave a word without contexts.
+	current.hidden = fromList;
+	word.readOnly = fromList;
+	remove.hidden = !fromList;
+	if (!fromList) {
+		sentence.textContent = selection.sentence;
+		url.replaceChildren(contextLink(selection.url));
+	}
 	save.disabled = false;
 	const { words: notebook = {} } = await chrome.storage.local.get("words");
 	if (shown !== selection) return;
 	const saved = notebook[headword];
 	if (saved) {
-		showSaved(saved, "登録済みの単語です。");
+		showSaved(saved, fromList ? "" : "登録済みの単語です。");
 		return;
 	}
 	showHistory([]);
@@ -265,7 +279,29 @@ function showList() {
 	list.hidden = false;
 	toggleList.textContent = "戻る";
 	showEijiroImport();
+	showBackTarget();
 	return renderList();
+}
+
+async function lastSelection() {
+	const { selection } = await chrome.storage.session.get("selection");
+	return selection;
+}
+
+// After a word from the list, 戻る goes to the last double-clicked word, and
+// there is none until the reader double-clicks after Chrome starts.
+async function showBackTarget() {
+	toggleList.disabled = Boolean(shown?.fromList) && !(await lastSelection());
+}
+
+async function goBack() {
+	if (!shown?.fromList) {
+		showEditor();
+		return;
+	}
+	const selection = await lastSelection();
+	// Shown from the saved notebook, so the reader sees its contexts as stored.
+	if (selection) show(selection);
 }
 
 async function showEijiroImport() {
@@ -285,55 +321,19 @@ async function renderList() {
 function entryItem(entry) {
 	const item = document.createElement("li");
 	item.dataset.headword = entry.headword;
-	const details = document.createElement("details");
-	const summary = document.createElement("summary");
-	// Chrome doesn't toggle the details for a click on a button in the summary,
-	// so the ▶ needs no preventDefault.
-	summary.append(
-		entry.headword,
-		" ",
-		speakButton("見出し語を読み上げる", entry.headword),
-	);
-	const parts = [
-		labelled(
-			"Wiktionary",
-			entry.meanings.length
-				? formatMeanings(entry.meanings)
-				: "Wiktionary に見つかりませんでした。",
-			entry.meanings.length ? "meanings" : "meanings muted",
-		),
-	];
-	if (entry.note) parts.push(labelled("メモ", entry.note, "note"));
-	const seen = document.createElement("ol");
-	seen.className = "entry-contexts";
-	seen.append(...entry.contexts.map(contextItem));
-	const remove = document.createElement("button");
-	remove.type = "button";
-	remove.className = "delete";
-	remove.textContent = "削除";
-	remove.addEventListener("click", async () => {
-		if (!confirm(`「${entry.headword}」を単語帳から削除しますか？`)) return;
-		const { words: notebook = {} } = await chrome.storage.local.get("words");
-		// The list redraws itself from the storage change.
-		await chrome.storage.local.set({
-			words: removeWord(notebook, entry.headword),
-		});
+	const open = document.createElement("button");
+	open.type = "button";
+	open.className = "open";
+	open.textContent = entry.headword;
+	const count = document.createElement("span");
+	count.className = "count";
+	count.textContent = `文脈 ${entry.contexts.length}`;
+	item.append(open, speakButton("見出し語を読み上げる", entry.headword), count);
+	item.addEventListener("click", (event) => {
+		if (event.target.closest(".speak")) return;
+		show({ word: entry.headword, fromList: true });
 	});
-	details.append(summary, ...parts, seen, remove);
-	item.append(details);
 	return item;
-}
-
-function labelled(label, text, className) {
-	const tag = document.createElement("span");
-	tag.className = "tag";
-	tag.textContent = label;
-	const body = document.createElement("p");
-	body.className = className;
-	body.textContent = text;
-	const part = document.createElement("div");
-	part.append(tag, body);
-	return part;
 }
 
 exportButton.addEventListener("click", async () => {
@@ -393,14 +393,33 @@ eijiroFile.addEventListener("change", async () => {
 });
 
 toggleList.addEventListener("click", () =>
-	list.hidden ? showList() : showEditor(),
+	list.hidden ? showList() : goBack(),
 );
+
+remove.addEventListener("click", async () => {
+	const headword = word.value;
+	if (!confirm(`「${headword}」を単語帳から削除しますか？`)) return;
+	const { words: notebook = {} } = await chrome.storage.local.get("words");
+	await chrome.storage.local.set({ words: removeWord(notebook, headword) });
+	// The word is gone, so its unsaved edits are nothing to ask about later.
+	markSaved();
+	showList();
+});
 
 save.addEventListener("click", async () => {
 	const selection = shown;
 	const headword = word.value.trim();
 	if (!headword) {
 		setStatus("見出し語を入力してください。");
+		return;
+	}
+	if (selection.fromList) {
+		const { words: notebook = {} } = await chrome.storage.local.get("words");
+		await chrome.storage.local.set({
+			words: saveNote(notebook, headword, note.value),
+		});
+		setStatus("保存しました。");
+		markSaved();
 		return;
 	}
 	await switching;
