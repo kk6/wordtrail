@@ -185,6 +185,8 @@ async function startSession(evidenceDir) {
 			const panel = await panelTarget().asPage();
 			return panel.$eval(selector, (e) => ({
 				hidden: e.hidden,
+				open: e.open,
+				shown: e.checkVisibility(),
 				classes: [...e.classList],
 				href: e.getAttribute("href"),
 			}));
@@ -396,6 +398,13 @@ async function startSession(evidenceDir) {
 		async reopenPanel() {
 			await (await panelTarget().asPage()).close();
 			await this.openPanel();
+		},
+		// Every key the extension keeps in its local storage.
+		async storedKeys() {
+			const panel = await panelTarget().asPage();
+			return panel.evaluate(async () =>
+				Object.keys(await chrome.storage.local.get(null)),
+			);
 		},
 		// Read-only look at what was saved, for values the panel doesn't show as-is.
 		async savedWords() {
@@ -1419,6 +1428,48 @@ const journeys = {
 			(await s.panelTags())[0] === "英辞郎" &&
 				(await s.panelText("translations")) === "名:\n1. ＝<→color>",
 			[await s.panelTags(), await s.panelText("translations")],
+		);
+
+		check(
+			"英辞郎の欄は、最初は開いている",
+			(await s.panelLook("#eijiro-section")).open &&
+				(await s.panelLook("#translations")).shown,
+			await s.panelLook("#eijiro-section"),
+		);
+		await s.clickInPanel("#eijiro-section summary");
+		check(
+			"英辞郎のラベルをクリックすると、訳が畳まれてラベルだけが残る",
+			!(await s.panelLook("#eijiro-section")).open &&
+				!(await s.panelLook("#translations")).shown &&
+				(await s.panelTags())[0] === "英辞郎",
+			[await s.panelLook("#translations"), await s.panelTags()],
+		);
+		await s.dblclick("#ubiquitous");
+		await s.panelMeanings();
+		check(
+			"畳んだ後に別の単語をダブルクリックしても、畳んだまま",
+			(await s.panelText("word")) === "ubiquitous" &&
+				!(await s.panelLook("#eijiro-section")).open,
+			await s.panelLook("#eijiro-section"),
+		);
+		await s.reopenPanel();
+		check(
+			"畳んだ後にパネルを開き直しても、畳んだまま",
+			!(await s.panelLook("#eijiro-section")).open,
+			await s.panelLook("#eijiro-section"),
+		);
+		check(
+			"開閉の状態は、単語帳と同じストレージに入らない",
+			isDeepStrictEqual(await s.storedKeys(), ["words"]) &&
+				!JSON.stringify(await s.savedWords()).includes("eijiroOpen"),
+			await s.storedKeys(),
+		);
+		await s.clickInPanel("#eijiro-section summary");
+		await s.reopenPanel();
+		check(
+			"開いた後にパネルを開き直すと、開いたまま",
+			(await s.panelLook("#eijiro-section")).open,
+			await s.panelLook("#eijiro-section"),
 		);
 		await s.screenshot("eijiro-panel");
 	},

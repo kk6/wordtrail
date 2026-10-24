@@ -203,6 +203,15 @@
 			#delete {
 				margin-left: auto;
 			}
+			#eijiro-section summary {
+				cursor: pointer;
+			}
+			#eijiro-section summary::before {
+				content: "▾ ";
+			}
+			#eijiro-section:not([open]) summary::before {
+				content: "▸ ";
+			}
 			#toggle-list:disabled {
 				opacity: 0.5;
 				cursor: default;
@@ -228,10 +237,10 @@
 				<input id="word" placeholder="単語をダブルクリックしてください" />
 				<button id="speak-word" class="speak" type="button" aria-label="見出し語を読み上げる" title="見出し語を読み上げる">▶</button>
 			</div>
-			<div id="eijiro-section" class="section" hidden>
-				<span class="tag">英辞郎</span>
+			<details id="eijiro-section" class="section" hidden open>
+				<summary class="tag">英辞郎</summary>
 				<p id="translations" class="meanings" aria-live="polite"></p>
-			</div>
+			</details>
 			<div class="section">
 				<span class="tag">Wiktionary</span>
 				<p id="meanings" class="meanings" aria-live="polite"></p>

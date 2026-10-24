@@ -197,6 +197,12 @@ function showMeanings(next) {
 	meanings.classList.toggle("muted", !found?.length);
 }
 
+// Kept apart from the notebook, so the reader's choice never reaches an export.
+eijiroSection.open = localStorage.getItem("eijiroOpen") !== "false";
+eijiroSection.addEventListener("toggle", () =>
+	localStorage.setItem("eijiroOpen", eijiroSection.open),
+);
+
 word.addEventListener("input", markUnsaved);
 note.addEventListener("input", markUnsaved);
 

@@ -10,6 +10,7 @@
 - `eijiro-panel-relookup` は、見出し語を直して欄を離れると、大文字と小文字を区別せずに引き直す。
 - `eijiro-panel-spelling` は、綴りが違う見出し語に元の綴りを添える。
 - `eijiro-panel-not-saved` は、保存した単語と書き出すファイルに英辞郎の訳を入れない。
+- `eijiro-panel-fold` は、英辞郎のラベルのクリックで訳を畳んだり開いたりする。最初は開いていて、畳んだ状態は別の単語に移っても、パネルを開き直しても保つ。状態は単語帳のストレージに入れない。
 - `eijiro-panel-registered` は、登録済みの単語を開いたときも、一覧から開いたときも、訳をその場で引いて出す。
 
 ## How to get to it (user POV)
@@ -33,9 +34,12 @@ Preconditions:
 - **保存と書き出し。** そのまま保存すると、`savedWords()` に `colour` があり、`＝<→color>` は含まれない。一覧の `#export` で書き出したファイルにも含まれない。
 - **登録済み。** `#idempotent` をダブルクリックして見出し語を `colour` にすると、登録済みの `colour` が出て、`#translations` が `名:` `1. ＝<→color>` になる。
 - **一覧から開く。** 一覧で `colour` の `.open` をクリックすると、いちばん上のラベルが `英辞郎` で、`#translations` が同じ訳になる。
+- **折り畳み。** 欄は最初は開いている。`#eijiro-section summary` をクリックすると `#translations` が隠れ、ラベル `英辞郎` は残る。`#ubiquitous` をダブルクリックしても、`reopenPanel()` の後も畳んだまま。`storedKeys()` は `words` だけ。もう一度クリックして `reopenPanel()` すると、開いたまま。
 - **証跡。** `eijiro-panel-page.png`、`eijiro-panel-panel.png`、`downloads/` の書き出したファイルが残る。
 
 ## Gotchas
+
+- 開閉の状態は拡張のページの `localStorage` に残り、同じジャーニーの中では `reopenPanel()` をまたいで続く。ジャーニーごとにプロファイルが新しくなるので、他のジャーニーには持ち越さない。
 
 - 英辞郎の欄は IndexedDB から引くので、Wiktionary とは別に遅れて出る。見出し語を書き換えた後に少し待ってから `#translations` を読む。
 - 英辞郎の欄が見つからなかったと出るのは取り込んだ後だけ。取り込む前は欄ごと隠れるので、`#translations` の文字を見ても判断できない。`#eijiro-section` の `hidden` を見る。
