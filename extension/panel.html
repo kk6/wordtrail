@@ -11,10 +11,10 @@
 				--text: #2c2c2a;
 				--muted: #6b6a65;
 				--border: #dddbd3;
-				--accent: #1d9e75;
-				--accent-strong: #0f6e56;
-				--tag-bg: #e1f5ee;
-				--tag-text: #085041;
+				--accent: #ae82d9;
+				--tag-bg: #efe6f9;
+				--tag-text: #4b2a73;
+				--success: #1f6f68;
 				--warning: #b42318;
 			}
 			@media (prefers-color-scheme: dark) {
@@ -24,10 +24,10 @@
 					--text: #ecebe6;
 					--muted: #a5a39b;
 					--border: #44443f;
-					--accent: #5dcaa5;
-					--accent-strong: #9fe1cb;
-					--tag-bg: #085041;
-					--tag-text: #9fe1cb;
+					--accent: #c9a8ec;
+					--tag-bg: #3d2a55;
+					--tag-text: #e2d1f5;
+					--success: #7fd6cc;
 					--warning: #f97066;
 				}
 			}
@@ -60,7 +60,8 @@
 			#save {
 				background: var(--accent);
 				border-color: var(--accent);
-				color: #ffffff;
+				/* White on the lavender is 3:1, too faint for the main button. */
+				color: #1f1f1e;
 				padding: 6px 20px;
 			}
 			#save:disabled {
@@ -153,6 +154,10 @@
 			#status.warning,
 			#unsaved {
 				color: var(--warning);
+			}
+			#list-status.success {
+				color: var(--success);
+				font-weight: 500;
 			}
 			.entry-contexts {
 				list-style: none;

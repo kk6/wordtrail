@@ -94,6 +94,11 @@ function markSaved() {
 	markUnsaved();
 }
 
+function setListStatus(text, success = false) {
+	listStatus.textContent = text;
+	listStatus.classList.toggle("success", success);
+}
+
 function setStatus(text, warning = false) {
 	status.textContent = text;
 	status.classList.toggle("warning", warning);
@@ -353,7 +358,7 @@ exportButton.addEventListener("click", async () => {
 	link.click();
 	// Revoking right after click() can cancel the download before it starts.
 	setTimeout(() => URL.revokeObjectURL(link.href), 10_000);
-	listStatus.textContent = `${Object.keys(notebook).length} 語を書き出しました。`;
+	setListStatus(`${Object.keys(notebook).length} 語を書き出しました。`);
 });
 
 importButton.addEventListener("click", () => importFile.click());
@@ -364,7 +369,9 @@ importFile.addEventListener("change", async () => {
 	if (!file) return;
 	const result = importNotebook(await file.text());
 	if (result.error) {
-		listStatus.textContent = `読み込めませんでした。${result.error}単語帳は変わっていません。`;
+		setListStatus(
+			`読み込めませんでした。${result.error}単語帳は変わっていません。`,
+		);
 		return;
 	}
 	const { words: notebook = {} } = await chrome.storage.local.get("words");
@@ -376,7 +383,7 @@ importFile.addEventListener("change", async () => {
 	)
 		return;
 	await chrome.storage.local.set({ words: result.words });
-	listStatus.textContent = `${count(result.words)} 語を読み込みました。`;
+	setListStatus(`${count(result.words)} 語を読み込みました。`);
 });
 
 eijiroButton.addEventListener("click", () => eijiroFile.click());
@@ -410,7 +417,7 @@ remove.addEventListener("click", async () => {
 	// The word is gone, so its unsaved edits are nothing to ask about later.
 	markSaved();
 	showList();
-	listStatus.textContent = `「${headword}」を削除しました。`;
+	setListStatus(`「${headword}」を削除しました。`, true);
 });
 
 save.addEventListener("click", async () => {

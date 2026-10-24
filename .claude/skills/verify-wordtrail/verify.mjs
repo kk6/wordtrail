@@ -881,6 +881,7 @@ const journeys = {
 			(await s.screen()).showing === "list" &&
 				(await s.panelText("list-status")) ===
 					"「ubiquitous」を削除しました。" &&
+				(await s.panelLook("#list-status")).classes.includes("success") &&
 				isDeepStrictEqual(await s.listHeadwords(), [
 					"deprecated",
 					"idempotent",
