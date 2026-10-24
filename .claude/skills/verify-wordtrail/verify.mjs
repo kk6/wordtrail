@@ -670,6 +670,67 @@ const journeys = {
 			dialogs.seen.length === 2 && (await s.panelText("word")) === "ubiquitous",
 			dialogs.seen,
 		);
+
+		await s.panelMeanings();
+		await s.typeInPanel("note", "どこにでも");
+		await s.clickInPanel("#toggle-list");
+		check(
+			"書き換え中に「一覧」を押しただけでは、確認が出ない",
+			dialogs.seen.length === 2 && (await s.screen()).showing === "list",
+			dialogs.seen,
+		);
+		const deprecated = '#words li[data-headword="deprecated"] .open';
+		dialogs.accept = false;
+		await s.clickInPanel(deprecated);
+		check(
+			"書き換え中に一覧の行をクリックすると確認が出て、キャンセルすると一覧のまま",
+			dialogs.seen.length === 3 && (await s.screen()).showing === "list",
+			[dialogs.seen, await s.screen()],
+		);
+		await s.clickInPanel("#toggle-list");
+		check(
+			"読書中の語の書き換えは、一覧から「戻る」と残っていて、確認も出ない",
+			dialogs.seen.length === 3 &&
+				(await s.screen()).word === "ubiquitous" &&
+				(await s.panelText("note")) === "どこにでも",
+			[dialogs.seen, await s.screen()],
+		);
+		await s.clickInPanel("#toggle-list");
+		dialogs.accept = true;
+		await s.clickInPanel(deprecated);
+		check(
+			"確認で承認すると、一覧の行の単語が開く",
+			dialogs.seen.length === 4 && (await s.screen()).word === "deprecated",
+			await s.screen(),
+		);
+		await s.typeInPanel("note", "非推奨。使わない");
+		dialogs.accept = false;
+		await s.dblclick("#idempotent");
+		check(
+			"一覧から開いた語の書き換え中にダブルクリックすると確認が出て、キャンセルすると残る",
+			dialogs.seen.length === 5 &&
+				(await s.screen()).word === "deprecated" &&
+				(await s.panelText("note")) === "非推奨。使わない",
+			[dialogs.seen, await s.screen()],
+		);
+		await s.clickInPanel("#toggle-list");
+		await s.clickInPanel("#toggle-list");
+		check(
+			"一覧から開いた語の書き換え中に「戻る」を押すと確認が出て、キャンセルすると残る",
+			dialogs.seen.length === 6 &&
+				(await s.screen()).showing === "list" &&
+				(await s.panelText("note")) === "非推奨。使わない",
+			[dialogs.seen, await s.screen()],
+		);
+		dialogs.accept = true;
+		await s.clickInPanel("#toggle-list");
+		check(
+			"確認で承認すると、「戻る」で最後にダブルクリックした語が出る",
+			dialogs.seen.length === 7 &&
+				(await s.screen()).word === "idempotent" &&
+				(await s.savedWords()).deprecated.note === "非推奨",
+			[dialogs.seen, await s.screen()],
+		);
 		await s.screenshot("unsaved");
 	},
 	async persist(s, check) {
