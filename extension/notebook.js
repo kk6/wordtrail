@@ -32,6 +32,19 @@ export function saveEntry(words, { headword, meanings, note, context }) {
 }
 
 /**
+ * The notebook with only the word's note replaced, or the same notebook when
+ * the word isn't registered. A word opened from the list has no sentence being
+ * read, so nothing joins its contexts.
+ * @param {Record<string, { note: string }>} words
+ * @param {string} headword
+ * @param {string} note
+ */
+export function saveNote(words, headword, note) {
+	const key = headword.toLowerCase();
+	return words[key] ? { ...words, [key]: { ...words[key], note } } : words;
+}
+
+/**
  * The word in the shape with a note, or the same word when it has one. Before
  * the note existed, the reader's own words were meanings without a part of
  * speech; Wiktionary always gives one, so those move to the note.

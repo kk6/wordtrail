@@ -7,6 +7,7 @@ import {
 	newestFirst,
 	removeWord,
 	saveEntry,
+	saveNote,
 } from "../extension/notebook.js";
 
 const entry = {
@@ -185,4 +186,23 @@ test("メモを持つ語は、移した後の形なので変わらない", () =>
 		oldShape([{ partOfSpeech: "", definitions: ["走る"] }]),
 	);
 	assert.equal(migrateEntry(once), once);
+});
+
+test("メモだけを書き換えると、見出し語、意味、文脈、登録日時はそのまま残る", () => {
+	const words = saveNote({ run: { ...entry, note: "" } }, "run", "走る");
+	assert.deepEqual(words, { run: { ...entry, note: "走る" } });
+});
+
+test("メモを書き換える語は、大文字と小文字を区別せずに探す", () => {
+	const words = saveNote(
+		{ us: { ...entry, headword: "US", note: "" } },
+		"US",
+		"合衆国",
+	);
+	assert.equal(words.us.note, "合衆国");
+});
+
+test("単語帳にない語のメモを書き換えようとしても、単語帳は変わらない", () => {
+	const words = { run: { ...entry, note: "" } };
+	assert.equal(saveNote(words, "walk", "歩く"), words);
 });
